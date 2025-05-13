@@ -28,9 +28,9 @@ class RoundScreen extends StatefulWidget {
   State<RoundScreen> createState() => RoundScreenState();
 }
 
-enum Mode {
-  botPlay,
-  freePlay,
+enum PlayMode {
+  bot,
+  free,
 }
 
 class RoundScreenState extends State<RoundScreen> {
@@ -44,7 +44,7 @@ class RoundScreenState extends State<RoundScreen> {
   NormalMove? promotionMove;
   NormalMove? premove;
   ValidMoves validMoves = IMap(const {});
-  Mode playMode = Mode.freePlay;
+  PlayMode playMode = PlayMode.free;
   Position? lastPos;
 
   BlePeripheral get blePeripheral => widget.blePeripheral;
@@ -59,21 +59,16 @@ class RoundScreenState extends State<RoundScreen> {
       lastPos = null;
     });
     () async {
-      await _showChoicesPicker<Mode>(
-        context,
-        choices: Mode.values,
-        selectedItem: playMode,
-        labelBuilder: (t) => Text(t.name),
-        onSelectedItemChanged: (Mode value) {
-          setState(() {
-            playMode = value;
-          });
-        },
+      playMode = await _showChoicesPicker<PlayMode>(
+        context: context,
+        title: 'Select play mode',
+        choices: PlayMode.values,
+        defaultValue: playMode,
       );
       await peripheral.handleBegin(
         fen: fen,
         variant: Variants.standard,
-        side: playMode == Mode.botPlay ? Sides.white : Sides.both,
+        side: playMode == PlayMode.bot ? Sides.white : Sides.both,
         lastMove: lastMove?.uci,
       );
     }.call();
@@ -148,7 +143,7 @@ class RoundScreenState extends State<RoundScreen> {
   void _handlePeripheralMove(String uci) {
     final move = NormalMove.fromUci(uci);
     if (position.isLegal(move)) {
-      playMode == Mode.botPlay ? _onUserMoveAgainstBot(move) : _playMove(move);
+      playMode == PlayMode.bot ? _onUserMoveAgainstBot(move) : _playMove(move);
     } else {
       setState(() {
         peripheral.handleReject();
@@ -224,36 +219,35 @@ class RoundScreenState extends State<RoundScreen> {
     }
   }
 
-  Future<void> _showChoicesPicker<T extends Enum>(
-    BuildContext context, {
+  Future<T> _showChoicesPicker<T extends Enum>({
+    required BuildContext context,
+    required String title,
     required List<T> choices,
-    required T selectedItem,
-    required Widget Function(T choice) labelBuilder,
-    required void Function(T choice) onSelectedItemChanged,
+    required T defaultValue,
   }) async {
-    await showDialog<void>(
+    final selectedValue = await showDialog<T>(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          contentPadding: const EdgeInsets.only(top: 12),
-          scrollable: true,
+          title: Center(child: Text(title)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: choices.map((value) {
-              return RadioListTile<T>(
-                title: labelBuilder(value),
-                value: value,
-                groupValue: selectedItem,
-                onChanged: (value) {
-                  if (value != null) onSelectedItemChanged(value);
-                  Navigator.of(context).pop();
-                },
+              return Card(
+                child: ListTile(
+                  title: Center(child: Text(value.name)),
+                  onTap: () {
+                    Navigator.of(context).pop(value);
+                  },
+                ),
               );
-            }).toList(growable: false),
+            }).toList(),
           ),
         );
       },
     );
+    return selectedValue != null ? selectedValue : defaultValue;
   }
 
   void _onSetPremove(NormalMove? move) {
@@ -266,7 +260,7 @@ class RoundScreenState extends State<RoundScreen> {
     if (role == null) {
       _onPromotionCancel();
     } else if (promotionMove != null) {
-      if (playMode == Mode.botPlay) {
+      if (playMode == PlayMode.bot) {
         _onUserMoveAgainstBot(promotionMove!.withPromotion(role));
       } else {
         _playMove(promotionMove!.withPromotion(role));
@@ -476,7 +470,7 @@ class RoundScreenState extends State<RoundScreen> {
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
               squareHighlights: _createSquareHighlights(),
               game: GameData(
-                playerSide: playMode == Mode.botPlay
+                playerSide: playMode == PlayMode.bot
                     ? PlayerSide.white
                     : (position.turn == Side.white
                         ? PlayerSide.white
@@ -488,7 +482,7 @@ class RoundScreenState extends State<RoundScreen> {
                     ? position.isCheck
                     : false,
                 promotionMove: promotionMove,
-                onMove: playMode == Mode.botPlay
+                onMove: playMode == PlayMode.bot
                     ? _onUserMoveAgainstBot
                     : _playMove,
                 onPromotionSelection: _onPromotionSelection,
