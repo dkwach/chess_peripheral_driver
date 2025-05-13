@@ -12,7 +12,6 @@ import 'package:dartchess/dartchess.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'board_theme.dart';
 import 'peripheral_fen.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -45,18 +44,8 @@ class RoundScreenState extends State<RoundScreen> {
   NormalMove? promotionMove;
   NormalMove? premove;
   ValidMoves validMoves = IMap(const {});
-  Side sideToMove = Side.white;
-  PieceSet pieceSet = PieceSet.gioco;
-  PieceShiftMethod pieceShiftMethod = PieceShiftMethod.either;
-  DragTargetKind dragTargetKind = DragTargetKind.circle;
-  BoardTheme boardTheme = BoardTheme.brown;
-  bool drawMode = true;
-  bool pieceAnimation = true;
-  bool dragMagnify = true;
   Mode playMode = Mode.freePlay;
   Position? lastPos;
-  ISet<Shape> shapes = ISet();
-  bool showBorder = false;
 
   BlePeripheral get blePeripheral => widget.blePeripheral;
   BleConnector get bleConnector => widget.bleConnector;
@@ -231,19 +220,6 @@ class RoundScreenState extends State<RoundScreen> {
     if (premove != null) {
       Timer.run(() {
         _playMove(premove!, isPremove: true);
-      });
-    }
-  }
-
-  void _onCompleteShape(Shape shape) {
-    if (shapes.any((element) => element == shape)) {
-      setState(() {
-        shapes = shapes.remove(shape);
-      });
-      return;
-    } else {
-      setState(() {
-        shapes = shapes.add(shape);
       });
     }
   }
@@ -495,36 +471,6 @@ class RoundScreenState extends State<RoundScreen> {
           builder: (context, constraints) {
             return Chessboard(
               size: min(constraints.maxWidth, constraints.maxHeight),
-              settings: ChessboardSettings(
-                pieceAssets: pieceSet.assets,
-                colorScheme: boardTheme.colors,
-                border: showBorder
-                    ? BoardBorder(
-                        width: 16.0,
-                        color: _darken(boardTheme.colors.darkSquare, 0.2),
-                      )
-                    : null,
-                enableCoordinates: true,
-                animationDuration: pieceAnimation
-                    ? const Duration(milliseconds: 200)
-                    : Duration.zero,
-                dragFeedbackScale: dragMagnify ? 2.0 : 1.0,
-                dragTargetKind: dragTargetKind,
-                drawShape: DrawShapeOptions(
-                  enable: drawMode,
-                  onCompleteShape: _onCompleteShape,
-                  onClearShapes: () {
-                    setState(() {
-                      shapes = ISet();
-                    });
-                  },
-                ),
-                pieceShiftMethod: pieceShiftMethod,
-                autoQueenPromotionOnPremove: false,
-                pieceOrientationBehavior: playMode == Mode.freePlay
-                    ? PieceOrientationBehavior.opponentUpsideDown
-                    : PieceOrientationBehavior.facingUser,
-              ),
               orientation: orientation,
               fen: fen,
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
@@ -551,7 +497,6 @@ class RoundScreenState extends State<RoundScreen> {
                   premove: premove,
                 ),
               ),
-              shapes: shapes.isNotEmpty ? shapes : null,
             );
           },
         ),
@@ -649,9 +594,4 @@ class RoundScreenState extends State<RoundScreen> {
           ),
         ),
       );
-}
-
-Color _darken(Color c, [double amount = .1]) {
-  assert(amount >= 0 && amount <= 1);
-  return Color.lerp(c, const Color(0xFF000000), amount) ?? c;
 }
