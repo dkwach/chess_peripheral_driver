@@ -159,6 +159,17 @@ class RoundScreenState extends State<RoundScreen> {
     });
   }
 
+  void _handleUndo() {
+    setState(() {
+      position = lastPos ?? position;
+      fen = position.fen;
+      validMoves = makeLegalMoves(position);
+      lastPos = null;
+      lastMove = null;
+      peripheral.handleUndo(fen: position.fen);
+    });
+  }
+
   Future<void> _initPeripheral() async {
     final mtu = bleConnector.createMtu();
     final requestedMtu = await mtu.request(mtu: maxStringSize);
@@ -486,6 +497,16 @@ class RoundScreenState extends State<RoundScreen> {
         onPressed: peripheral.isInitialized ? _beginNewRound : null,
       );
 
+  Widget _buildUndoButton() => FilledButton.icon(
+        icon: const Icon(Icons.undo_rounded),
+        label: Text('Undo'),
+        onPressed: peripheral.isInitialized &&
+                playMode == PlayMode.free &&
+                lastPos != null
+            ? _handleUndo
+            : null,
+      );
+
   Widget _buildAutocompleteButton() => FilledButton.icon(
         icon: const Icon(Icons.auto_awesome_rounded),
         label: Text('Autocomplete'),
@@ -494,19 +515,38 @@ class RoundScreenState extends State<RoundScreen> {
             : null,
       );
 
-  Widget _buildControlButtons() => SizedBox(
-        height: buttonHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _buildNewRoundButton()),
-            if (peripheral.isFeatureSupported(Features.setState))
-              const SizedBox(width: buttonsSplitter),
-            if (peripheral.isFeatureSupported(Features.setState))
-              Expanded(child: _buildAutocompleteButton()),
-          ],
+  Widget _buildControlButtons() {
+    final isSetStateSup = peripheral.isFeatureSupported(Features.setState);
+    final isUndoSup = peripheral.isFeatureSupported(Features.undo);
+    return Column(
+      children: [
+        if (isSetStateSup)
+          SizedBox(
+            height: buttonHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Expanded(child: _buildNewRoundButton()),
+                // if (isSetStateSup) const SizedBox(width: buttonsSplitter),
+                if (isSetStateSup) Expanded(child: _buildAutocompleteButton()),
+              ],
+            ),
+          ),
+        if (isSetStateSup) const SizedBox(height: buttonsSplitter),
+        SizedBox(
+          height: buttonHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: _buildNewRoundButton()),
+              if (isUndoSup) const SizedBox(width: buttonsSplitter),
+              if (isUndoSup) Expanded(child: _buildUndoButton()),
+            ],
+          ),
         ),
-      );
+      ],
+    );
+  }
 
   Widget _buildPortrait() => Padding(
         padding: EdgeInsets.symmetric(vertical: screenPadding),
