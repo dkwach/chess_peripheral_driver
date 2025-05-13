@@ -276,7 +276,7 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _playMove(NormalMove move, {bool? isDrop, bool? isPremove}) {
     lastPos = position;
-    if (isPromotionPawnMove(move)) {
+    if (_isPromotionPawnMove(move)) {
       setState(() {
         promotionMove = move;
       });
@@ -297,7 +297,7 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _onUserMoveAgainstBot(NormalMove move, {isDrop}) async {
     lastPos = position;
-    if (isPromotionPawnMove(move)) {
+    if (_isPromotionPawnMove(move)) {
       setState(() {
         promotionMove = move;
       });
@@ -331,7 +331,7 @@ class RoundScreenState extends State<RoundScreen> {
     if (allMoves.isNotEmpty) {
       NormalMove mv = (allMoves..shuffle()).first;
       // Auto promote to a random non-pawn role
-      if (isPromotionPawnMove(mv)) {
+      if (_isPromotionPawnMove(mv)) {
         final potentialRoles =
             Role.values.where((role) => role != Role.pawn).toList();
         final role = potentialRoles[random.nextInt(potentialRoles.length)];
@@ -350,7 +350,7 @@ class RoundScreenState extends State<RoundScreen> {
     }
   }
 
-  bool isPromotionPawnMove(NormalMove move) {
+  bool _isPromotionPawnMove(NormalMove move) {
     return move.promotion == null &&
         position.board.roleAt(move.from) == Role.pawn &&
         ((move.to.rank == Rank.first && position.turn == Side.black) ||
@@ -375,29 +375,13 @@ class RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
-  // String? get lastMove {
-  //   final history = game.history;
-  //   if (history.isEmpty) return null;
-  //   final lastMove = history.last.move;
-  //   String uci = lastMove.fromAlgebraic + lastMove.toAlgebraic;
-  //   final promotion = lastMove.promotion;
-  //   if (promotion != null) uci += promotion.name;
-  //   return uci;
-  // }
-
-  // Widget _buildChessBoardWidget() => ChessBoard(
-  //       controller: chessController,
-  //       boardColor: BoardColor.darkBrown,
-  //       boardOrientation: PlayerColor.white,
-  //       onMove: _handleCentralMove,
-  //     );
-
   IMap<Square, SquareHighlight> _createSquareHighlights() {
     const Color rejectedMoveColor = Color.fromRGBO(199, 0, 109, 0.41);
     const Color pieceRemoveColor = Color.fromRGBO(255, 60, 60, 0.50);
     const Color pieceAddColor = Color.fromRGBO(60, 255, 60, 0.50);
     const Color pieceReplaceColor = Color.fromRGBO(60, 60, 255, 0.50);
     IMap<Square, SquareHighlight> highlights = IMap();
+
     if (peripheral.round.rejectedMove != null) {
       final rejectedMove = NormalMove.fromUci(peripheral.round.rejectedMove!);
       highlights = highlights.add(
