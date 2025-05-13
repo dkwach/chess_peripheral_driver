@@ -70,8 +70,14 @@ class RoundScreenState extends State<RoundScreen> {
         variant: Variants.standard,
         side: playMode == PlayMode.bot ? Sides.white : Sides.both,
         lastMove: lastMove?.uci,
+        check: _getCheck(),
       );
     }.call();
+  }
+
+  String? _getCheck() {
+    final king = position.board.kingOf(position.turn);
+    return king != null && position.checkers.isNotEmpty ? king.name : null;
   }
 
   void _showMessage(String msg) {
@@ -114,7 +120,10 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   void _handleCentralMove(NormalMove move) {
-    peripheral.handleMove(move: move.uci);
+    peripheral.handleMove(
+      move: move.uci,
+      check: _getCheck(),
+    );
     _handleCentralEnd();
   }
 
@@ -166,7 +175,11 @@ class RoundScreenState extends State<RoundScreen> {
       validMoves = makeLegalMoves(position);
       lastPos = null;
       lastMove = null;
-      peripheral.handleUndo(fen: position.fen);
+      peripheral.handleUndo(
+        fen: position.fen,
+        lastMove: lastMove?.uci,
+        check: _getCheck(),
+      );
     });
   }
 
