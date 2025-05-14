@@ -176,6 +176,10 @@ class RoundScreenState extends State<RoundScreen> {
     });
   }
 
+  void _handleUpdate() {
+    peripheral.handleGetState();
+  }
+
   void _handlePeripheralResign(_) {
     _showMessage("Resign");
   }
@@ -292,6 +296,7 @@ class RoundScreenState extends State<RoundScreen> {
       Features.undo,
       Features.undoOffer,
       Features.drawOffer,
+      Features.getState,
       Features.setState,
       Features.stateStream,
       Features.drawReason,
@@ -633,30 +638,39 @@ class RoundScreenState extends State<RoundScreen> {
             : null,
       );
 
+  Widget _buildUpdateButton() => FilledButton.icon(
+        icon: const Icon(Icons.update_rounded),
+        label: Text('Update'),
+        onPressed: peripheral.isInitialized ? _handleUpdate : null,
+      );
+
   Widget _buildControlButtons() {
-    // TODO: add get state and resign button
     final isSetStateSup = peripheral.isFeatureSupported(Features.setState);
+    final isGetStateSup = peripheral.isFeatureSupported(Features.getState);
     final isUndoSup = peripheral.isFeatureSupported(Features.undo);
     final isUndoOfferSup = peripheral.isFeatureSupported(Features.undoOffer);
     final isDrawOfferSup = peripheral.isFeatureSupported(Features.drawOffer);
+    final areGetAndSetOfferSup = isGetStateSup && isSetStateSup;
+    final areGetOrSetOfferSup = isGetStateSup || isSetStateSup;
     final areUndoAndDrawOfferSup = isUndoOfferSup && isDrawOfferSup;
     final areUndoOrDrawOfferSup = isUndoOfferSup || isDrawOfferSup;
 
     return Column(
       children: [
-        if (isSetStateSup)
+        if (areGetOrSetOfferSup)
           SizedBox(
             height: buttonHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Expanded(child: _buildNewRoundButton()),
-                // if (isSetStateSup) const SizedBox(width: buttonsSplitter),
                 if (isSetStateSup) Expanded(child: _buildAutocompleteButton()),
+                if (areGetAndSetOfferSup)
+                  const SizedBox(width: buttonsSplitter),
+                if (isGetStateSup) Expanded(child: _buildUpdateButton()),
               ],
             ),
           ),
-        if (isSetStateSup) const SizedBox(height: buttonsSplitter),
+        if (areGetOrSetOfferSup) const SizedBox(height: buttonsSplitter),
         if (areUndoOrDrawOfferSup)
           SizedBox(
             height: buttonHeight,
