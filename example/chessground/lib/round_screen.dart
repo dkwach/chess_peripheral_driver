@@ -33,6 +33,11 @@ enum PlayMode {
   free,
 }
 
+enum Ack {
+  yes,
+  no,
+}
+
 class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   Peripheral peripheral = DummyPeripheral();
@@ -168,19 +173,57 @@ class RoundScreenState extends State<RoundScreen> {
     });
   }
 
-  void _handleUndo() {
+  void _handlePeripheralResign(_) {
+    _showMessage("Resign");
+  }
+
+  bool _canUndo() => playMode == PlayMode.free && lastPos != null;
+
+  Future<void> _handleCentralUndo() async {
     setState(() {
       position = lastPos ?? position;
       fen = position.fen;
       validMoves = makeLegalMoves(position);
       lastPos = null;
       lastMove = null;
-      peripheral.handleUndo(
-        fen: position.fen,
-        lastMove: lastMove?.uci,
-        check: _getCheck(),
-      );
     });
+    await peripheral.handleUndo(
+      fen: position.fen,
+      lastMove: lastMove?.uci,
+      check: _getCheck(),
+    );
+  }
+
+  Future<void> _handlePeripheralUndoOffer(_) async {
+    final ack = _canUndo()
+        ? await _showChoicesPicker<Ack>(
+            context: context,
+            title: 'Undo?',
+            choices: Ack.values,
+            defaultValue: Ack.no,
+          )
+        : Ack.no;
+    if (ack == Ack.yes) {
+      await peripheral.handleDrawOffer();
+      await _handleCentralUndo();
+    } else {
+      await peripheral.handleReject();
+    }
+  }
+
+  Future<void> _handlePeripheralDrawOffer(_) async {
+    final ack = await _showChoicesPicker<Ack>(
+      context: context,
+      title: 'Draw?',
+      choices: Ack.values,
+      defaultValue: Ack.no,
+    );
+    if (ack == Ack.yes) {
+      await peripheral.handleDrawOffer();
+      _showMessage('Draw');
+    } else {
+      await peripheral.handleReject();
+    }
   }
 
   Future<void> _initPeripheral() async {
@@ -205,6 +248,10 @@ class RoundScreenState extends State<RoundScreen> {
       Features.msg,
       Features.lastMove,
       Features.side,
+      Features.resign,
+      Features.undo,
+      Features.undoOffer,
+      Features.drawOffer,
       Features.setState,
       Features.stateStream,
       Features.drawReason,
@@ -223,6 +270,9 @@ class RoundScreenState extends State<RoundScreen> {
     peripheral.moveStream.listen(_handlePeripheralMove);
     peripheral.errStream.listen(_showError);
     peripheral.msgStream.listen(_showMessage);
+    peripheral.resignStream.listen(_handlePeripheralResign);
+    peripheral.undoOfferStream.listen(_handlePeripheralUndoOffer);
+    peripheral.drawOfferStream.listen(_handlePeripheralDrawOffer);
   }
 
   void _onConnectionStateChanged(BleConnectorStatus state) {
@@ -513,11 +563,8 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildUndoButton() => FilledButton.icon(
         icon: const Icon(Icons.undo_rounded),
         label: Text('Undo'),
-        onPressed: peripheral.isInitialized &&
-                playMode == PlayMode.free &&
-                lastPos != null
-            ? _handleUndo
-            : null,
+        onPressed:
+            peripheral.isInitialized && _canUndo() ? _handleCentralUndo : null,
       );
 
   Widget _buildAutocompleteButton() => FilledButton.icon(
