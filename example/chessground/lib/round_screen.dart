@@ -291,6 +291,7 @@ class RoundScreenState extends State<RoundScreen> {
     final features = [
       Features.msg,
       Features.lastMove,
+      Features.check,
       Features.side,
       Features.resign,
       Features.undo,
