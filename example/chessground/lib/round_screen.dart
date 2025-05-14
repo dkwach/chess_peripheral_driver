@@ -42,6 +42,7 @@ class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   Peripheral peripheral = DummyPeripheral();
   bool isAutocompleteOngoing = false;
+  bool isOfferOngoing = false;
   Position position = Chess.initial;
   Side orientation = Side.white;
   String fen = kInitialBoardFEN;
@@ -108,6 +109,7 @@ class RoundScreenState extends State<RoundScreen> {
   void _handlePeripheralRoundInitialized(_) {
     setState(() {
       isAutocompleteOngoing = false;
+      isOfferOngoing = false;
       if (!peripheral.round.isVariantSupported) {
         _showMessage('Unsupported variant');
       }
@@ -117,6 +119,7 @@ class RoundScreenState extends State<RoundScreen> {
   void _handlePeripheralRoundUpdate(_) {
     setState(() {
       isAutocompleteOngoing = false;
+      isOfferOngoing = false;
     });
   }
 
@@ -211,6 +214,25 @@ class RoundScreenState extends State<RoundScreen> {
     }
   }
 
+  void _handleCentralUndoOffer() {
+    setState(() {
+      isOfferOngoing = true;
+      peripheral.handleUndoOffer();
+    });
+  }
+
+  void _handleCentralUndoOfferAck(bool ack) {
+    setState(() {
+      isOfferOngoing = false;
+      if (ack) {
+        _showMessage('Undo accepted');
+        _handleCentralUndo();
+      } else {
+        _showMessage('Undo rejected');
+      }
+    });
+  }
+
   Future<void> _handlePeripheralDrawOffer(_) async {
     final ack = await _showChoicesPicker<Ack>(
       context: context,
@@ -224,6 +246,24 @@ class RoundScreenState extends State<RoundScreen> {
     } else {
       await peripheral.handleReject();
     }
+  }
+
+  void _handleCentralDrawOffer() {
+    setState(() {
+      isOfferOngoing = true;
+      peripheral.handleDrawOffer();
+    });
+  }
+
+  void _handleCentralDrawOfferAck(bool ack) {
+    setState(() {
+      isOfferOngoing = false;
+      if (ack) {
+        _showMessage('Draw accepted');
+      } else {
+        _showMessage('Draw rejected');
+      }
+    });
   }
 
   Future<void> _initPeripheral() async {
@@ -272,7 +312,9 @@ class RoundScreenState extends State<RoundScreen> {
     peripheral.msgStream.listen(_showMessage);
     peripheral.resignStream.listen(_handlePeripheralResign);
     peripheral.undoOfferStream.listen(_handlePeripheralUndoOffer);
+    peripheral.undoOfferAckStream.listen(_handleCentralUndoOfferAck);
     peripheral.drawOfferStream.listen(_handlePeripheralDrawOffer);
+    peripheral.drawOfferAckStream.listen(_handleCentralDrawOfferAck);
   }
 
   void _onConnectionStateChanged(BleConnectorStatus state) {
@@ -567,6 +609,22 @@ class RoundScreenState extends State<RoundScreen> {
             peripheral.isInitialized && _canUndo() ? _handleCentralUndo : null,
       );
 
+  Widget _buildDrawOfferButton() => FilledButton.icon(
+        icon: const Icon(Icons.announcement_rounded),
+        label: Text('Offer draw'),
+        onPressed: peripheral.isInitialized && !isOfferOngoing
+            ? _handleCentralDrawOffer
+            : null,
+      );
+
+  Widget _buildUndoOfferButton() => FilledButton.icon(
+        icon: const Icon(Icons.announcement_rounded),
+        label: Text('Offer Undo'),
+        onPressed: peripheral.isInitialized && _canUndo() && !isOfferOngoing
+            ? _handleCentralUndoOffer
+            : null,
+      );
+
   Widget _buildAutocompleteButton() => FilledButton.icon(
         icon: const Icon(Icons.auto_awesome_rounded),
         label: Text('Autocomplete'),
@@ -576,8 +634,14 @@ class RoundScreenState extends State<RoundScreen> {
       );
 
   Widget _buildControlButtons() {
+    // TODO: add get state and resign button
     final isSetStateSup = peripheral.isFeatureSupported(Features.setState);
     final isUndoSup = peripheral.isFeatureSupported(Features.undo);
+    final isUndoOfferSup = peripheral.isFeatureSupported(Features.undoOffer);
+    final isDrawOfferSup = peripheral.isFeatureSupported(Features.drawOffer);
+    final areUndoAndDrawOfferSup = isUndoOfferSup && isDrawOfferSup;
+    final areUndoOrDrawOfferSup = isUndoOfferSup || isDrawOfferSup;
+
     return Column(
       children: [
         if (isSetStateSup)
@@ -593,6 +657,20 @@ class RoundScreenState extends State<RoundScreen> {
             ),
           ),
         if (isSetStateSup) const SizedBox(height: buttonsSplitter),
+        if (areUndoOrDrawOfferSup)
+          SizedBox(
+            height: buttonHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isDrawOfferSup) Expanded(child: _buildDrawOfferButton()),
+                if (areUndoAndDrawOfferSup)
+                  const SizedBox(width: buttonsSplitter),
+                if (isUndoOfferSup) Expanded(child: _buildUndoOfferButton()),
+              ],
+            ),
+          ),
+        if (areUndoOrDrawOfferSup) const SizedBox(height: buttonsSplitter),
         SizedBox(
           height: buttonHeight,
           child: Row(
