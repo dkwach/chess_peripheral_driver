@@ -657,6 +657,7 @@ class RoundScreenState extends State<RoundScreen> {
     final areUndoOrDrawOfferSup = isUndoOfferSup || isDrawOfferSup;
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (areGetOrSetOfferSup)
           SizedBox(
