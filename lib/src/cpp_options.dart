@@ -13,23 +13,23 @@ class CppOptions {
       final name = split[0];
       final type = split[1];
 
-      if (type == OptionType.bool) {
+      if (type == OptionTypes.bool) {
         _add(BoolOption(
           name: name,
           defaultValue: bool.parse(split[2]),
         ));
-      } else if (type == OptionType.enu) {
+      } else if (type == OptionTypes.enu) {
         _add(EnumOption(
           name: name,
           defaultValue: split[2],
           enumValues: split.sublist(3),
         ));
-      } else if (type == OptionType.str) {
+      } else if (type == OptionTypes.str) {
         _add(StrOption(
           name: name,
           defaultValue: split.sublist(2).join(' '),
         ));
-      } else if (type == OptionType.int) {
+      } else if (type == OptionTypes.int) {
         _add(IntOption(
           name: name,
           defaultValue: int.parse(split[2]),
@@ -37,7 +37,7 @@ class CppOptions {
           max: int.parse(split[4]),
           step: split.length > 5 ? int.parse(split[5]) : null,
         ));
-      } else if (type == OptionType.float) {
+      } else if (type == OptionTypes.float) {
         _add(FloatOption(
           name: name,
           defaultValue: double.parse(split[2]),

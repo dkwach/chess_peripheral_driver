@@ -14,7 +14,7 @@ final serial = BleStringSerial(
 final peripheral = CppPeripheral(
     stringSerial: serial,
     features: [],
-    variants: [Variant.standard]);
+    variants: [Variants.standard]);
 
 peripheral.initializedStream.listen((_) {
     print('Initialized');
@@ -53,13 +53,13 @@ final bleSerial = BleSerial(
 
 Call feature specific methods only if feature is supported by peripheral:
 ```dart
-if (peripheral.isFeatureSupported(Feature.undoOffer)) {
+if (peripheral.isFeatureSupported(Features.undoOffer)) {
     peripheral.handleUndoOffer();
 }
-if (peripheral.isFeatureSupported(Feature.drawOffer)) {
+if (peripheral.isFeatureSupported(Features.drawOffer)) {
     peripheral.handleDrawOffer();
 }
-if (peripheral.isFeatureSupported(Feature.setState) && peripheral.round.isStateSetible) {
+if (peripheral.isFeatureSupported(Features.setState) && peripheral.round.isStateSetible) {
     peripheral.handleSetState();
 }
 ```

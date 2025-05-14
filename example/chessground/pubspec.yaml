@@ -1,0 +1,25 @@
+name: ble_chess_example
+description: BLE Chess example.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ble_backend_factory: ^1.3.0
+  ble_backend_screens: ^1.1.0
+  fluttertoast: ^8.2.12
+  dartchess: ^0.11.0
+  chessground: ^7.1.2
+  ble_chess_peripheral_driver:
+    path: ../../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
