@@ -211,7 +211,7 @@ class RoundScreenState extends State<RoundScreen> {
           )
         : Ack.no;
     if (ack == Ack.yes) {
-      await peripheral.handleDrawOffer();
+      await peripheral.handleUndoOffer();
       await _handleCentralUndo();
     } else {
       await peripheral.handleReject();
