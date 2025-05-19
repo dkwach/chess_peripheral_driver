@@ -56,7 +56,7 @@ class RoundScreenState extends State<RoundScreen> {
   BlePeripheral get blePeripheral => widget.blePeripheral;
   BleConnector get bleConnector => widget.bleConnector;
 
-  void _beginNewRound() {
+  Future<void> _beginNewRound() async {
     setState(() {
       position = Chess.initial;
       fen = position.fen;
@@ -64,21 +64,19 @@ class RoundScreenState extends State<RoundScreen> {
       lastMove = null;
       lastPos = null;
     });
-    () async {
-      playMode = await _showChoicesPicker<PlayMode>(
-        context: context,
-        title: 'Select play mode',
-        choices: PlayMode.values,
-        defaultValue: playMode,
-      );
-      await peripheral.handleBegin(
-        fen: fen,
-        variant: Variants.standard,
-        side: playMode == PlayMode.bot ? Sides.white : Sides.both,
-        lastMove: lastMove?.uci,
-        check: _getCheck(),
-      );
-    }.call();
+    playMode = await _showChoicesPicker<PlayMode>(
+      context: context,
+      title: 'Select play mode',
+      choices: PlayMode.values,
+      defaultValue: playMode,
+    );
+    await peripheral.handleBegin(
+      fen: fen,
+      variant: Variants.standard,
+      side: playMode == PlayMode.bot ? Sides.white : Sides.both,
+      lastMove: lastMove?.uci,
+      check: _getCheck(),
+    );
   }
 
   String? _getCheck() {
@@ -101,9 +99,7 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   void _handlePeripheralInitialized(_) {
-    setState(() {
-      _beginNewRound();
-    });
+    _beginNewRound();
   }
 
   void _handlePeripheralRoundInitialized(_) {
@@ -417,7 +413,7 @@ class RoundScreenState extends State<RoundScreen> {
     }
   }
 
-  void _onUserMoveAgainstBot(NormalMove move, {isDrop}) async {
+  Future<void> _onUserMoveAgainstBot(NormalMove move, {isDrop}) async {
     lastPos = position;
     if (_isPromotionPawnMove(move)) {
       setState(() {
