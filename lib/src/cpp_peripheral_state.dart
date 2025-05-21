@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import './string_consts.dart';
 import './cpp_round.dart';
 import './cpp_peripheral.dart';
+
+final logger = Logger('cpp_peripheral');
 
 class CppPeripheralState {
   late CppPeripheral context;
@@ -39,6 +42,7 @@ class CppPeripheralState {
 
   void sendErrToCentral(String err) {
     context.errController.add(err);
+    logger.warning(err);
   }
 
   void sendMsgToCentral(String msg) {
