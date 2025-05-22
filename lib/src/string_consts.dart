@@ -1,4 +1,4 @@
-class Feature {
+class Features {
   static const getState = 'get_state';
   static const setState = 'set_state';
   static const stateStream = 'state_stream';
@@ -18,7 +18,7 @@ class Feature {
   static const variantReason = 'variant_reason';
 }
 
-class Variant {
+class Variants {
   static const standard = 'standard';
   static const chess960 = 'chess_960';
   static const threeCheck = '3_check';
@@ -30,7 +30,7 @@ class Variant {
   static const crazyHouse = 'crazy_house';
 }
 
-class Command {
+class Commands {
   static const ok = 'ok';
   static const nok = 'nok';
   static const feature = 'feature';
@@ -45,28 +45,28 @@ class Command {
   static const promote = 'promote';
   static const err = 'err';
   static const drop = 'drop';
-  static const getState = Feature.getState;
-  static const setState = Feature.setState;
+  static const getState = Features.getState;
+  static const setState = Features.setState;
   static const unsyncSetible = 'unsync_setible';
-  static const lastMove = Feature.lastMove;
-  static const check = Feature.check;
-  static const moved = Feature.moved;
-  static const msg = Feature.msg;
-  static const resign = Feature.resign;
-  static const undo = Feature.undo;
-  static const undoOffer = Feature.undoOffer;
-  static const drawOffer = Feature.drawOffer;
-  static const side = Feature.side;
-  static const time = Feature.time;
-  static const score = Feature.score;
+  static const lastMove = Features.lastMove;
+  static const check = Features.check;
+  static const moved = Features.moved;
+  static const msg = Features.msg;
+  static const resign = Features.resign;
+  static const undo = Features.undo;
+  static const undoOffer = Features.undoOffer;
+  static const drawOffer = Features.drawOffer;
+  static const side = Features.side;
+  static const time = Features.time;
+  static const score = Features.score;
   static const optionsBegin = 'options_begin';
-  static const option = Feature.option;
+  static const option = Features.option;
   static const optionsEnd = 'options_end';
   static const optionsReset = 'options_reset';
   static const setOption = 'set_option';
 }
 
-class EndReason {
+class EndReasons {
   static const undefined = 'undefined';
   static const checkmate = 'checkmate';
   static const draw = 'draw';
@@ -75,14 +75,14 @@ class EndReason {
   static const abort = 'abort';
 }
 
-class Side {
+class Sides {
   static const white = 'w';
   static const black = 'b';
   static const both = '?';
 }
 
-class DrawReason {
-  static const drawOffer = Feature.drawOffer;
+class DrawReasons {
+  static const drawOffer = Features.drawOffer;
   static const stalemate = 'stalemate';
   static const threefoldRepetition = 'threefold_repetition';
   static const fiftyMove = 'fifty_move';
@@ -90,12 +90,12 @@ class DrawReason {
   static const deadPosition = 'dead_position';
 }
 
-class VariantReason {
-  static const threeCheck = Variant.threeCheck;
-  static const kingOfTheHill = Variant.kingOfTheHill;
+class VariantReasons {
+  static const threeCheck = Variants.threeCheck;
+  static const kingOfTheHill = Variants.kingOfTheHill;
 }
 
-class OptionType {
+class OptionTypes {
   static const bool = 'bool';
   static const enu = 'enum';
   static const str = 'str';

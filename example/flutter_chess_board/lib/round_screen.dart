@@ -38,8 +38,8 @@ class RoundScreenState extends State<RoundScreen> {
     chessController.resetBoard();
     peripheral.handleBegin(
       fen: chessController.getFen(),
-      variant: Variant.standard,
-      side: Side.both,
+      variant: Variants.standard,
+      side: Sides.both,
       lastMove: lastMove,
     );
   }
@@ -91,28 +91,28 @@ class RoundScreenState extends State<RoundScreen> {
   void _handleCentralEnd() {
     if (game.in_checkmate) {
       _showMessage('Checkmate');
-      peripheral.handleEnd(reason: EndReason.checkmate);
+      peripheral.handleEnd(reason: EndReasons.checkmate);
     } else if (game.in_stalemate) {
       _showMessage('Stalemate');
       peripheral.handleEnd(
-        reason: EndReason.draw,
-        drawReason: DrawReason.stalemate,
+        reason: EndReasons.draw,
+        drawReason: DrawReasons.stalemate,
       );
     } else if (game.in_threefold_repetition) {
       _showMessage('Threefold repetition');
       peripheral.handleEnd(
-        reason: EndReason.draw,
-        drawReason: DrawReason.threefoldRepetition,
+        reason: EndReasons.draw,
+        drawReason: DrawReasons.threefoldRepetition,
       );
     } else if (game.insufficient_material) {
       _showMessage('Insufficient material');
       peripheral.handleEnd(
-        reason: EndReason.draw,
-        drawReason: DrawReason.insufficientMaterial,
+        reason: EndReasons.draw,
+        drawReason: DrawReasons.insufficientMaterial,
       );
     } else if (game.in_draw) {
       _showMessage('Draw');
-      peripheral.handleEnd(reason: EndReason.draw);
+      peripheral.handleEnd(reason: EndReasons.draw);
     }
   }
 
@@ -151,15 +151,15 @@ class RoundScreenState extends State<RoundScreen> {
       ),
     );
     final features = [
-      Feature.msg,
-      Feature.lastMove,
-      Feature.side,
-      Feature.setState,
-      Feature.stateStream,
-      Feature.drawReason,
-      Feature.option,
+      Features.msg,
+      Features.lastMove,
+      Features.side,
+      Features.setState,
+      Features.stateStream,
+      Features.drawReason,
+      Features.option,
     ];
-    final variants = [Variant.standard];
+    final variants = [Variants.standard];
     peripheral = CppPeripheral(
       stringSerial: serial,
       features: features,
@@ -238,9 +238,9 @@ class RoundScreenState extends State<RoundScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _buildNewRoundButton()),
-            if (peripheral.isFeatureSupported(Feature.setState))
+            if (peripheral.isFeatureSupported(Features.setState))
               const SizedBox(width: buttonsSplitter),
-            if (peripheral.isFeatureSupported(Feature.setState))
+            if (peripheral.isFeatureSupported(Features.setState))
               Expanded(child: _buildAutocompleteButton()),
           ],
         ),
@@ -284,7 +284,7 @@ class RoundScreenState extends State<RoundScreen> {
           title: Text(blePeripheral.name ?? ''),
           centerTitle: true,
           actions: [
-            if (peripheral.isFeatureSupported(Feature.option))
+            if (peripheral.isFeatureSupported(Features.option))
               IconButton(
                 icon: const Icon(Icons.settings_rounded),
                 onPressed: peripheral.isInitialized

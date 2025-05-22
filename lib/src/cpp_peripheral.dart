@@ -23,13 +23,13 @@ class CppPeripheral implements Peripheral {
     final checkVariants = IterableExchangeState(
       variants.iterator,
       cppVariants,
-      Command.variant,
+      Commands.variant,
       InitializedState(),
     );
     final checkFeatures = IterableExchangeState(
       features.iterator,
       cppFeatures,
-      Command.feature,
+      Commands.feature,
       checkVariants,
     );
     transitionTo(checkFeatures);
@@ -145,7 +145,12 @@ class CppPeripheral implements Peripheral {
     String? variantReason,
     String? score,
   }) async {
-    await state.handleCentralEnd();
+    await state.handleCentralEnd(
+      reason: reason,
+      drawReason: drawReason,
+      variantReason: variantReason,
+      score: score,
+    );
   }
 
   @override

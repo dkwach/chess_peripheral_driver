@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import './string_consts.dart';
 import './cpp_round.dart';
 import './cpp_peripheral.dart';
+
+final logger = Logger('cpp_peripheral');
 
 class CppPeripheralState {
   late CppPeripheral context;
@@ -39,6 +42,7 @@ class CppPeripheralState {
 
   void sendErrToCentral(String err) {
     context.errController.add(err);
+    logger.warning(err);
   }
 
   void sendMsgToCentral(String msg) {
@@ -95,7 +99,7 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Command.begin);
+    handleCentralUnexpected(Commands.begin);
   }
 
   Future<void> handleCentralMove({
@@ -103,11 +107,11 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Command.move);
+    handleCentralUnexpected(Commands.move);
   }
 
   Future<void> handleCentralReject() async {
-    handleCentralUnexpected(Command.nok);
+    handleCentralUnexpected(Commands.nok);
   }
 
   Future<void> handleCentralEnd({
@@ -116,15 +120,15 @@ class CppPeripheralState {
     String? variantReason,
     String? score,
   }) async {
-    handleCentralUnexpected(Command.end);
+    handleCentralUnexpected(Commands.end);
   }
 
   Future<void> handleCentralErr({required String err}) async {
-    handleCentralUnexpected(Command.err);
+    handleCentralUnexpected(Commands.err);
   }
 
   Future<void> handleCentralMsg({required String msg}) async {
-    handleCentralUnexpected(Command.msg);
+    handleCentralUnexpected(Commands.msg);
   }
 
   Future<void> handleCentralUndo({
@@ -133,42 +137,42 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Command.undo);
+    handleCentralUnexpected(Commands.undo);
   }
 
   Future<void> handleCentralUndoOffer() async {
-    handleCentralUnexpected(Command.undoOffer);
+    handleCentralUnexpected(Commands.undoOffer);
   }
 
   Future<void> handleCentralDrawOffer() async {
-    handleCentralUnexpected(Command.drawOffer);
+    handleCentralUnexpected(Commands.drawOffer);
   }
 
   Future<void> handleCentralGetState() async {
-    handleCentralUnexpected(Command.getState);
+    handleCentralUnexpected(Commands.getState);
   }
 
   Future<void> handleCentralSetState() async {
-    handleCentralUnexpected(Command.setState);
+    handleCentralUnexpected(Commands.setState);
   }
 
   Future<void> handleCentralState({required String fen}) async {
-    handleCentralUnexpected(Command.state);
+    handleCentralUnexpected(Commands.state);
   }
 
   Future<void> handleOptionsBegin() async {
-    handleCentralUnexpected(Command.optionsBegin);
+    handleCentralUnexpected(Commands.optionsBegin);
   }
 
   Future<void> handleOptionsReset() async {
-    handleCentralUnexpected(Command.optionsReset);
+    handleCentralUnexpected(Commands.optionsReset);
   }
 
   Future<void> handleSetOption({
     required String name,
     required String value,
   }) async {
-    handleCentralUnexpected(Command.setOption);
+    handleCentralUnexpected(Commands.setOption);
   }
 
   void handleCentralUnexpected(String event) {
