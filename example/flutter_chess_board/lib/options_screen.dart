@@ -212,7 +212,7 @@ class OptionsScreenState extends State<OptionsScreen> {
             }).toList(growable: false),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
             ),
