@@ -42,114 +42,126 @@ class OptionsScreenState extends State<OptionsScreen> {
       .join(' ');
 
   Widget _createTitle(Option option) => Text(
-    _convertToReadable(option.name),
-    style: const TextStyle(fontWeight: FontWeight.bold),
-  );
+        _convertToReadable(option.name),
+      );
 
   Widget _createBoolOption(BoolOption option) => ListTile(
-    title: _createTitle(option),
-    trailing: Switch(
-      value: option.value,
-      onChanged: (bool value) {
-        setState(() {
-          option.value = value;
-          peripheral.handleSetOption(
-            name: option.name,
-            value: option.valueString,
-          );
-        });
-      },
-    ),
-  );
+        title: _createTitle(option),
+        trailing: Switch(
+          value: option.value,
+          onChanged: (bool value) {
+            setState(() {
+              option.value = value;
+              peripheral.handleSetOption(
+                name: option.name,
+                value: option.valueString,
+              );
+            });
+          },
+        ),
+      );
 
   Widget _createEnumOption(EnumOption option) => ListTile(
-    title: _createTitle(option),
-    trailing: DropdownMenu<String>(
-      initialSelection: option.value,
-      dropdownMenuEntries:
-          option.enumValues.map((String value) {
+        title: _createTitle(option),
+        trailing: DropdownMenu<String>(
+          initialSelection: option.value,
+          dropdownMenuEntries: option.enumValues.map((String value) {
             return DropdownMenuEntry<String>(
               value: value,
               label: _convertToReadable(value),
             );
           }).toList(),
-      onSelected: (String? value) {
-        setState(() {
-          option.value = value!;
-          peripheral.handleSetOption(
-            name: option.name,
-            value: option.valueString,
-          );
-        });
-      },
-    ),
-  );
+          onSelected: (String? value) {
+            setState(() {
+              option.value = value!;
+              peripheral.handleSetOption(
+                name: option.name,
+                value: option.valueString,
+              );
+            });
+          },
+        ),
+      );
 
   Widget _createStrOption(StrOption option) => ListTile(
-    title: _createTitle(option),
-    subtitle: TextFormField(
-      controller: TextEditingController(text: option.value),
-      decoration: InputDecoration(
-        hintText: 'Enter a value',
-        border: OutlineInputBorder(),
-      ),
-      onFieldSubmitted: (String value) {
-        setState(() {
-          option.value = value;
-          peripheral.handleSetOption(
-            name: option.name,
-            value: option.valueString,
-          );
-        });
-      },
-    ),
-  );
+        title: _createTitle(option),
+        subtitle: TextFormField(
+          controller: TextEditingController(text: option.value),
+          decoration: InputDecoration(
+            hintText: 'Enter a value',
+            border: OutlineInputBorder(),
+          ),
+          onFieldSubmitted: (String value) {
+            setState(() {
+              option.value = value;
+              peripheral.handleSetOption(
+                name: option.name,
+                value: option.valueString,
+              );
+            });
+          },
+        ),
+      );
 
   Widget _createIntOption(IntOption option) => ListTile(
-    title: _createTitle(option),
-    subtitle: Slider(
-      value: option.value.toDouble(),
-      min: option.min.toDouble(),
-      max: option.max.toDouble(),
-      divisions:
-          option.step != null
-              ? ((option.max - option.min) / option.step!).round()
-              : null,
-      label: option.valueString,
-      onChanged: (double value) {
-        setState(() {
-          option.value = value.toInt();
-          peripheral.handleSetOption(
-            name: option.name,
-            value: option.valueString,
-          );
-        });
-      },
-    ),
-  );
+        title: Row(children: [
+          _createTitle(option),
+          Text(': '),
+          Text(
+            option.valueString,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ]),
+        subtitle: Slider(
+          value: option.value.toDouble(),
+          min: option.min.toDouble(),
+          max: option.max.toDouble(),
+          divisions: ((option.max - option.min) /
+                  (option.step != null ? option.step! : 1))
+              .round(),
+          label: option.valueString,
+          onChanged: (double value) {
+            setState(() {
+              option.value = value.toInt();
+              peripheral.handleSetOption(
+                name: option.name,
+                value: option.valueString,
+              );
+            });
+          },
+          year2023: false,
+        ),
+      );
 
   Widget _createFloatOption(FloatOption option) => ListTile(
-    title: _createTitle(option),
-    subtitle: Slider(
-      value: option.value,
-      min: option.min,
-      max: option.max,
-      divisions:
-          option.step != null
-              ? ((option.max - option.min) / option.step!).round()
-              : null,
-      label: option.valueString,
-      onChanged: (double value) {
-        setState(() {
-          option.value = value;
-          peripheral.handleSetOption(
-            name: option.name,
-            value: option.valueString,
-          );
-        });
-      },
-    ),
-  );
+        title: Row(children: [
+          _createTitle(option),
+          Text(': '),
+          Text(
+            option.valueString,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ]),
+        subtitle: Slider(
+          value: option.value,
+          min: option.min,
+          max: option.max,
+          divisions: ((option.max - option.min) /
+                  (option.step != null ? option.step! : 0.01))
+              .round(),
+          label: option.valueString,
+          onChanged: (double value) {
+            setState(() {
+              option.value = value;
+              peripheral.handleSetOption(
+                name: option.name,
+                value: option.valueString,
+              );
+            });
+          },
+          year2023: false,
+        ),
+      );
 
   Widget _createOption(Option option) {
     switch (option.runtimeType) {
