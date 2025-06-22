@@ -91,13 +91,17 @@ class OptionsScreenState extends State<OptionsScreen> {
 
   Widget _createStrOption(StrOption option) => ListTile(
         title: _createTitle(option),
-        subtitle: TextFormField(
-          controller: TextEditingController(text: option.value),
-          decoration: InputDecoration(
-            hintText: 'Enter a value',
-            border: OutlineInputBorder(),
-          ),
-          onFieldSubmitted: (String value) {
+        subtitle: Text(
+          option.valueString,
+          maxLines: 5,
+          style: ListTileTheme.of(context).subtitleTextStyle?.copyWith(
+                fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+              ),
+        ),
+        onTap: () => _showStrOptionPicker(
+          context,
+          option: option,
+          onSelected: (String value) {
             setState(() {
               option.value = value;
               peripheral.handleSetOption(
@@ -215,6 +219,46 @@ class OptionsScreenState extends State<OptionsScreen> {
             ElevatedButton(
               child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showStrOptionPicker(
+    BuildContext context, {
+    required StrOption option,
+    required void Function(String choice) onSelected,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: option.value);
+        return AlertDialog(
+          content: TextFormField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              hintText: 'Enter a value',
+            ),
+            onFieldSubmitted: (String value) {
+              onSelected(value);
+              Navigator.of(context).pop();
+            },
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onSelected(controller.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
             ),
           ],
         );
