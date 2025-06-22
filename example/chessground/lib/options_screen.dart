@@ -63,17 +63,22 @@ class OptionsScreenState extends State<OptionsScreen> {
 
   Widget _createEnumOption(EnumOption option) => ListTile(
         title: _createTitle(option),
-        trailing: DropdownMenu<String>(
-          initialSelection: option.value,
-          dropdownMenuEntries: option.enumValues.map((String value) {
-            return DropdownMenuEntry<String>(
-              value: value,
-              label: _convertToReadable(value),
-            );
-          }).toList(),
-          onSelected: (String? value) {
+        trailing: ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.25),
+          child: Text(
+            _convertToReadable(option.valueString),
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.end,
+            maxLines: 2,
+          ),
+        ),
+        onTap: () => _showEnumOptionPicker(
+          context,
+          option: option,
+          onSelected: (String value) {
             setState(() {
-              option.value = value!;
+              option.value = value;
               peripheral.handleSetOption(
                 name: option.name,
                 value: option.valueString,
@@ -178,6 +183,42 @@ class OptionsScreenState extends State<OptionsScreen> {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  void _showEnumOptionPicker(
+    BuildContext context, {
+    required EnumOption option,
+    required void Function(String choice) onSelected,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: const EdgeInsets.only(top: 12),
+          scrollable: true,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: option.enumValues.map((value) {
+              return RadioListTile(
+                title: Text(_convertToReadable(value)),
+                value: value,
+                groupValue: option.value,
+                onChanged: (value) {
+                  if (value != null) onSelected(value);
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(growable: false),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
