@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ble_backend_screens/ui/ui_consts.dart';
 import 'package:ble_chess_peripheral_driver/chess_peripheral_driver.dart';
 import 'package:flutter/material.dart';
 
@@ -243,12 +244,20 @@ class OptionsScreenState extends State<OptionsScreen> {
         ],
       ),
       body: SafeArea(
-        child: ListView.builder(
-          itemCount: areOptionsInitialized ? options.length : 0,
-          itemBuilder: (BuildContext context, int index) {
-            return _createOption(options[index]);
-          },
-        ),
+        child: areOptionsInitialized
+            ? Padding(
+                padding: EdgeInsets.all(screenPadding),
+                child: ListView(
+                  children: [
+                    Card(
+                      child: Column(
+                        children: options.map(_createOption).toList(),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }
