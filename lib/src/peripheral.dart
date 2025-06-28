@@ -90,8 +90,4 @@ abstract class Peripheral {
   // option feature
   Future<void> handleOptionsBegin();
   Future<void> handleOptionsReset();
-  Future<void> handleSetOption({
-    required String name,
-    required String value,
-  });
 }
