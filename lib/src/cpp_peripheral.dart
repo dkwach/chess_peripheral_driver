@@ -43,20 +43,20 @@ class CppPeripheral implements Peripheral {
   final CppRound cppRound = CppRound();
   bool areCppOptionsInitialized = false;
   late CppOptions cppOptions;
-  final initializedController = StreamController<void>();
-  final roundInitializedController = StreamController<void>();
-  final roundUpdateController = StreamController<void>();
-  final stateSynchronizeController = StreamController<bool>();
-  final moveController = StreamController<String>();
-  final errController = StreamController<String>();
-  final msgController = StreamController<String>();
-  final movedController = StreamController<void>();
-  final resignController = StreamController<void>();
-  final undoOfferController = StreamController<void>();
-  final undoOfferAckController = StreamController<bool>();
-  final drawOfferController = StreamController<void>();
-  final drawOfferAckController = StreamController<bool>();
-  final optionsUpdateController = StreamController<void>();
+  final initializedController = StreamController<void>.broadcast();
+  final roundInitializedController = StreamController<void>.broadcast();
+  final roundUpdateController = StreamController<void>.broadcast();
+  final stateSynchronizeController = StreamController<bool>.broadcast();
+  final moveController = StreamController<String>.broadcast();
+  final errController = StreamController<String>.broadcast();
+  final msgController = StreamController<String>.broadcast();
+  final movedController = StreamController<void>.broadcast();
+  final resignController = StreamController<void>.broadcast();
+  final undoOfferController = StreamController<void>.broadcast();
+  final undoOfferAckController = StreamController<bool>.broadcast();
+  final drawOfferController = StreamController<void>.broadcast();
+  final drawOfferAckController = StreamController<bool>.broadcast();
+  final optionsUpdateController = StreamController<void>.broadcast();
   late CppPeripheralState state;
 
   @override

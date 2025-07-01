@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 abstract class StringNotifier {
-  final StreamController<String> _stringStreamController =
-      StreamController<String>.broadcast();
+  final _stringStreamController = StreamController<String>.broadcast();
   Stream<String> get stringStream => _stringStreamController.stream;
 
   @protected
