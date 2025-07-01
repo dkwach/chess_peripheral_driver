@@ -53,10 +53,6 @@ class OptionsScreenState extends State<OptionsScreen> {
           onChanged: (bool value) {
             setState(() {
               option.value = value;
-              peripheral.handleSetOption(
-                name: option.name,
-                value: option.valueString,
-              );
             });
           },
         ),
@@ -80,10 +76,6 @@ class OptionsScreenState extends State<OptionsScreen> {
           onSelected: (String value) {
             setState(() {
               option.value = value;
-              peripheral.handleSetOption(
-                name: option.name,
-                value: option.valueString,
-              );
             });
           },
         ),
@@ -104,10 +96,6 @@ class OptionsScreenState extends State<OptionsScreen> {
           onSelected: (String value) {
             setState(() {
               option.value = value;
-              peripheral.handleSetOption(
-                name: option.name,
-                value: option.valueString,
-              );
             });
           },
         ),
@@ -133,10 +121,6 @@ class OptionsScreenState extends State<OptionsScreen> {
           onChanged: (double value) {
             setState(() {
               option.value = value.toInt();
-              peripheral.handleSetOption(
-                name: option.name,
-                value: option.valueString,
-              );
             });
           },
           year2023: false,
@@ -163,10 +147,6 @@ class OptionsScreenState extends State<OptionsScreen> {
           onChanged: (double value) {
             setState(() {
               option.value = value;
-              peripheral.handleSetOption(
-                name: option.name,
-                value: option.valueString,
-              );
             });
           },
           year2023: false,
@@ -174,19 +154,18 @@ class OptionsScreenState extends State<OptionsScreen> {
       );
 
   Widget _createOption(Option option) {
-    switch (option.runtimeType) {
-      case BoolOption:
-        return _createBoolOption(option as BoolOption);
-      case EnumOption:
-        return _createEnumOption(option as EnumOption);
-      case StrOption:
-        return _createStrOption(option as StrOption);
-      case IntOption:
-        return _createIntOption(option as IntOption);
-      case FloatOption:
-        return _createFloatOption(option as FloatOption);
-      default:
-        return const SizedBox.shrink();
+    if (option is BoolOption) {
+      return _createBoolOption(option);
+    } else if (option is EnumOption) {
+      return _createEnumOption(option);
+    } else if (option is StrOption) {
+      return _createStrOption(option);
+    } else if (option is IntOption) {
+      return _createIntOption(option);
+    } else if (option is FloatOption) {
+      return _createFloatOption(option);
+    } else {
+      return const SizedBox.shrink();
     }
   }
 

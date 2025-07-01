@@ -115,9 +115,4 @@ class DummyPeripheral implements Peripheral {
   Future<void> handleOptionsBegin() async {}
   @override
   Future<void> handleOptionsReset() async {}
-  @override
-  Future<void> handleSetOption({
-    required String name,
-    required String value,
-  }) async {}
 }

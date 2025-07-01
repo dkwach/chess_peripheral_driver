@@ -18,6 +18,7 @@ class CppPeripheral implements Peripheral {
     required List<String> features,
     required List<String> variants,
   }) : serial = stringSerial {
+    cppOptions = CppOptions(peripheral: this);
     serial.stringStream.listen(handlePeripheralCommand);
     serial.startNotifications();
     final checkVariants = IterableExchangeState(
@@ -41,7 +42,7 @@ class CppPeripheral implements Peripheral {
   bool isCppInitialized = false;
   final CppRound cppRound = CppRound();
   bool areCppOptionsInitialized = false;
-  CppOptions cppOptions = CppOptions();
+  late CppOptions cppOptions;
   final initializedController = StreamController<void>();
   final roundInitializedController = StreamController<void>();
   final roundUpdateController = StreamController<void>();
@@ -70,7 +71,7 @@ class CppPeripheral implements Peripheral {
   @override
   bool get areOptionsInitialized => areCppOptionsInitialized;
   @override
-  List<Option> get options => cppOptions.values;
+  List<Option> get options => cppOptions.list;
 
   @override
   Stream<void> get initializedStream => initializedController.stream;
@@ -224,7 +225,6 @@ class CppPeripheral implements Peripheral {
     await state.handleOptionsReset();
   }
 
-  @override
   Future<void> handleSetOption({
     required String name,
     required String value,
