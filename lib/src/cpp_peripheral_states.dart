@@ -270,15 +270,15 @@ class RoundBeginState extends RoundState {
   Future<void> handlePeripheralCommand(String cmd) async {
     if (cmd.startsWith(Commands.sync)) {
       round.isStateSynchronized = true;
-      round.isStateSetible = false;
+      round.isStateSettable = false;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       transitionTo(RoundOngoingState());
       sendRoundInitializedToCentral();
       sendStateSynchronizeToCentral(true);
-    } else if (cmd.startsWith(Commands.unsyncSetible)) {
+    } else if (cmd.startsWith(Commands.unsyncSettable)) {
       round.isStateSynchronized = false;
-      round.isStateSetible = true;
+      round.isStateSettable = true;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       transitionTo(RoundOngoingState());
@@ -286,7 +286,7 @@ class RoundBeginState extends RoundState {
       sendStateSynchronizeToCentral(false);
     } else if (cmd.startsWith(Commands.unsync)) {
       round.isStateSynchronized = false;
-      round.isStateSetible = false;
+      round.isStateSettable = false;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       transitionTo(RoundOngoingState());
@@ -309,21 +309,21 @@ class RoundOngoingState extends RoundState {
       sendMoveToCentral(move);
     } else if (cmd.startsWith(Commands.sync)) {
       round.isStateSynchronized = true;
-      round.isStateSetible = false;
+      round.isStateSettable = false;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       sendRoundUpdateToCentral();
       sendStateSynchronizeToCentral(true);
-    } else if (cmd.startsWith(Commands.unsyncSetible)) {
+    } else if (cmd.startsWith(Commands.unsyncSettable)) {
       round.isStateSynchronized = false;
-      round.isStateSetible = true;
+      round.isStateSettable = true;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       sendRoundUpdateToCentral();
       sendStateSynchronizeToCentral(false);
     } else if (cmd.startsWith(Commands.unsync)) {
       round.isStateSynchronized = false;
-      round.isStateSetible = false;
+      round.isStateSettable = false;
       round.fen = getCommandParams(cmd);
       round.isMoveRejected = false;
       sendRoundUpdateToCentral();

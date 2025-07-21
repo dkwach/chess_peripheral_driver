@@ -3,7 +3,7 @@ import './peripheral.dart';
 class CppRound implements Round {
   bool _isVariantSupported = false;
   bool _isStateSynchronized = false;
-  bool _isStateSetible = false;
+  bool _isStateSettable = false;
   String? _fen;
   String? _variant;
   String? _lastMove;
@@ -14,7 +14,7 @@ class CppRound implements Round {
   @override
   bool get isStateSynchronized => _isStateSynchronized;
   @override
-  bool get isStateSetible => _isStateSetible;
+  bool get isStateSettable => _isStateSettable;
   @override
   String? get fen => _fen;
   @override
@@ -32,8 +32,8 @@ class CppRound implements Round {
     _isStateSynchronized = isSynchronized;
   }
 
-  set isStateSetible(bool isSetible) {
-    _isStateSetible = isSetible;
+  set isStateSettable(bool isSettable) {
+    _isStateSettable = isSettable;
   }
 
   set fen(String? fen) {

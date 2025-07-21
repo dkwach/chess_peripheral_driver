@@ -7,7 +7,7 @@ class DummyRound implements Round {
   @override
   bool get isStateSynchronized => false;
   @override
-  bool get isStateSetible => false;
+  bool get isStateSettable => false;
   @override
   String? get fen => null;
   @override

@@ -630,7 +630,7 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildAutocompleteButton() => FilledButton.icon(
         icon: const Icon(Icons.auto_awesome_rounded),
         label: Text('Autocomplete'),
-        onPressed: peripheral.round.isStateSetible && !isAutocompleteOngoing
+        onPressed: peripheral.round.isStateSettable && !isAutocompleteOngoing
             ? _handleAutocomplete
             : null,
       );

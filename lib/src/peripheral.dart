@@ -4,7 +4,7 @@ abstract class Round {
   bool get isVariantSupported;
   bool get isStateSynchronized;
   // set_state feature
-  bool get isStateSetible;
+  bool get isStateSettable;
 
   String? get fen;
   String? get rejectedMove;

@@ -47,7 +47,7 @@ class Commands {
   static const drop = 'drop';
   static const getState = Features.getState;
   static const setState = Features.setState;
-  static const unsyncSetible = 'unsync_setible';
+  static const unsyncSettable = 'unsync_settable';
   static const lastMove = Features.lastMove;
   static const check = Features.check;
   static const moved = Features.moved;

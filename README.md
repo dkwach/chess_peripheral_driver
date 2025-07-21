@@ -59,7 +59,7 @@ if (peripheral.isFeatureSupported(Features.undoOffer)) {
 if (peripheral.isFeatureSupported(Features.drawOffer)) {
     peripheral.handleDrawOffer();
 }
-if (peripheral.isFeatureSupported(Features.setState) && peripheral.round.isStateSetible) {
+if (peripheral.isFeatureSupported(Features.setState) && peripheral.round.isStateSettable) {
     peripheral.handleSetState();
 }
 ```
