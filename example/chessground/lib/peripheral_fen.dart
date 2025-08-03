@@ -55,20 +55,22 @@ PeripheralPieces readPeripheralFen(String fen) {
           final roleLetter = c.toLowerCase();
           final square = Square.fromCoords(File(file), Rank(rank));
           pieces[square] = PeripheralPiece(
-            role: 'wb?'.contains(roleLetter) ? null : _roles[roleLetter]!,
+            role: 'u?'.contains(roleLetter) ? null : _roles[roleLetter]!,
             color: roleLetter == '?'
                 ? null
-                : roleLetter == 'w'
-                    ? Side.white
-                    : c == roleLetter
-                        ? Side.black
-                        : Side.white,
+                : c == roleLetter
+                    ? Side.black
+                    : Side.white,
           );
           ++file;
         }
     }
   }
   return pieces;
+}
+
+bool isPeripheralFenSettable(String? fen) {
+  return fen != null && !fen.contains(RegExp(r'[uU?]'));
 }
 
 const _roles = {
