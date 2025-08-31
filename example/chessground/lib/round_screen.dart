@@ -57,8 +57,18 @@ class RoundScreenState extends State<RoundScreen> {
   BleConnector get bleConnector => widget.bleConnector;
 
   Future<void> _beginNewRound() async {
+    await _beginFromPosition(Chess.initial);
+  }
+
+  Future<void> _beginPeripheralRound() async {
+    await peripheral.handleGetState();
+    final pos = await _waitForPeripheralPosition();
+    await _beginFromPosition(pos);
+  }
+
+  Future<void> _beginFromPosition(Position pos) async {
     setState(() {
-      position = Chess.initial;
+      position = pos;
       fen = position.fen;
       validMoves = makeLegalMoves(position);
       lastMove = null;
@@ -172,8 +182,8 @@ class RoundScreenState extends State<RoundScreen> {
     });
   }
 
-  void _handleUpdate() {
-    peripheral.handleGetState();
+  void _handleGetRound() {
+    _beginPeripheralRound();
   }
 
   void _handlePeripheralResign(_) {
@@ -335,6 +345,51 @@ class RoundScreenState extends State<RoundScreen> {
         _playMove(premove!, isPremove: true);
       });
     }
+  }
+
+  Future<Position> _waitForPeripheralPosition() async {
+    if (isPeripheralFenSettable(peripheral.round.fen))
+      return Chess.fromSetup(Setup.parseFen(peripheral.round.fen!));
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            StreamSubscription? sub;
+            sub ??= peripheral.roundUpdateStream.listen((_) {
+              if (isPeripheralFenSettable(peripheral.round.fen)) {
+                Navigator.of(context).pop();
+                sub?.cancel();
+              }
+            });
+            return AlertDialog(
+              title: Text(peripheral.round.fen == null
+                  ? 'Waiting for peripheral position...'
+                  : 'Waiting for peripheral valid position...'),
+              content: const SizedBox(
+                height: 60,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    sub?.cancel();
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    return isPeripheralFenSettable(peripheral.round.fen)
+        ? Chess.fromSetup(Setup.parseFen(peripheral.round.fen!))
+        : Chess.initial;
   }
 
   Future<T> _showChoicesPicker<T extends Enum>({
@@ -635,10 +690,10 @@ class RoundScreenState extends State<RoundScreen> {
             : null,
       );
 
-  Widget _buildUpdateButton() => FilledButton.icon(
-        icon: const Icon(Icons.update_rounded),
-        label: Text('Update'),
-        onPressed: peripheral.isInitialized ? _handleUpdate : null,
+  Widget _buildGetRoundButton() => FilledButton.icon(
+        icon: const Icon(Icons.download_rounded),
+        label: Text('Get Round'),
+        onPressed: peripheral.isInitialized ? _handleGetRound : null,
       );
 
   Widget _buildControlButtons() {
@@ -664,7 +719,7 @@ class RoundScreenState extends State<RoundScreen> {
                 if (isSetStateSup) Expanded(child: _buildAutocompleteButton()),
                 if (areGetAndSetOfferSup)
                   const SizedBox(width: buttonsSplitter),
-                if (isGetStateSup) Expanded(child: _buildUpdateButton()),
+                if (isGetStateSup) Expanded(child: _buildGetRoundButton()),
               ],
             ),
           ),
