@@ -300,7 +300,7 @@ class RoundScreenState extends State<RoundScreen> {
       Features.check,
       Features.side,
       Features.resign,
-      Features.undo,
+      Features.undoRedo,
       Features.undoOffer,
       Features.drawOffer,
       Features.getState,
@@ -699,7 +699,7 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildControlButtons() {
     final isSetStateSup = peripheral.isFeatureSupported(Features.setState);
     final isGetStateSup = peripheral.isFeatureSupported(Features.getState);
-    final isUndoSup = peripheral.isFeatureSupported(Features.undo);
+    final isUndoSup = peripheral.isFeatureSupported(Features.undoRedo);
     final isUndoOfferSup = peripheral.isFeatureSupported(Features.undoOffer);
     final isDrawOfferSup = peripheral.isFeatureSupported(Features.drawOffer);
     final areGetAndSetOfferSup = isGetStateSup && isSetStateSup;

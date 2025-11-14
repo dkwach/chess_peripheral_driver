@@ -7,7 +7,7 @@ class Features {
   static const moved = 'moved';
   static const msg = 'msg';
   static const resign = 'resign';
-  static const undo = 'undo';
+  static const undoRedo = 'undo_redo';
   static const undoOffer = 'undo_offer';
   static const drawOffer = 'draw_offer';
   static const side = 'side';
@@ -53,7 +53,8 @@ class Commands {
   static const moved = Features.moved;
   static const msg = Features.msg;
   static const resign = Features.resign;
-  static const undo = Features.undo;
+  static const undo = 'undo';
+  static const redo = 'redo';
   static const undoOffer = Features.undoOffer;
   static const drawOffer = Features.drawOffer;
   static const side = Features.side;

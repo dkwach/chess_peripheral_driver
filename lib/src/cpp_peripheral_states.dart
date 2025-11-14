@@ -236,20 +236,29 @@ class RoundState extends IdleState {
     String? check,
     String? time,
   }) async {
-    round.isMoveRejected = false;
-    sendRoundUpdateToCentral();
+    await handleCentralShift(
+      cmd: Commands.undo,
+      fen: fen,
+      lastMove: lastMove,
+      check: check,
+      time: time,
+    );
+  }
 
-    await sendCommandToPrtipheral(join(Commands.undo, fen));
-
-    if (lastMove != null && isFeatureSupported(Features.lastMove)) {
-      await sendCommandToPrtipheral(join(Commands.lastMove, lastMove));
-    }
-    if (check != null && isFeatureSupported(Features.check)) {
-      await sendCommandToPrtipheral(join(Commands.check, check));
-    }
-    if (time != null && isFeatureSupported(Features.time)) {
-      await sendCommandToPrtipheral(join(Commands.time, time));
-    }
+  @override
+  Future<void> handleCentralRedo({
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  }) async {
+    await handleCentralShift(
+      cmd: Commands.redo,
+      fen: fen,
+      lastMove: lastMove,
+      check: check,
+      time: time,
+    );
   }
 
   @override
@@ -262,6 +271,29 @@ class RoundState extends IdleState {
   Future<void> handleCentralDrawOffer() async {
     transitionTo(CentralDrawOfferState());
     await sendCommandToPrtipheral(Commands.drawOffer);
+  }
+
+  Future<void> handleCentralShift({
+    required String cmd,
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  }) async {
+    round.isMoveRejected = false;
+    sendRoundUpdateToCentral();
+
+    await sendCommandToPrtipheral(join(cmd, fen));
+
+    if (lastMove != null && isFeatureSupported(Features.lastMove)) {
+      await sendCommandToPrtipheral(join(Commands.lastMove, lastMove));
+    }
+    if (check != null && isFeatureSupported(Features.check)) {
+      await sendCommandToPrtipheral(join(Commands.check, check));
+    }
+    if (time != null && isFeatureSupported(Features.time)) {
+      await sendCommandToPrtipheral(join(Commands.time, time));
+    }
   }
 }
 
@@ -376,6 +408,7 @@ class PeripheralMoveState extends RoundOngoingState {
     }
   }
 
+  @override
   Future<void> handleCentralReject() async {
     round.isMoveRejected = true;
     sendRoundUpdateToCentral();
@@ -392,6 +425,7 @@ class PeripheralUndoOfferState extends RoundOngoingState {
     await sendCommandToPrtipheral(Commands.ok);
   }
 
+  @override
   Future<void> handleCentralReject() async {
     transitionTo(RoundOngoingState());
     await sendCommandToPrtipheral(Commands.nok);
@@ -420,6 +454,7 @@ class PeripheralDrawOfferState extends RoundOngoingState {
     await sendCommandToPrtipheral(Commands.ok);
   }
 
+  @override
   Future<void> handleCentralReject() async {
     transitionTo(RoundOngoingState());
     await sendCommandToPrtipheral(Commands.nok);

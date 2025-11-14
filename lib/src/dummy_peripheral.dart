@@ -100,6 +100,13 @@ class DummyPeripheral implements Peripheral {
     String? time,
   }) async {}
   @override
+  Future<void> handleRedo({
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  }) async {}
+  @override
   Future<void> handleUndoOffer() async {}
   @override
   Future<void> handleDrawOffer() async {}
