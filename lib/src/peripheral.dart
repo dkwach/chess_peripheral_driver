@@ -68,8 +68,14 @@ abstract class Peripheral {
   Future<void> handleMsg({
     required String msg,
   });
-  // undo feature
+  // undo_redo feature
   Future<void> handleUndo({
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  });
+  Future<void> handleRedo({
     required String fen,
     String? lastMove,
     String? check,

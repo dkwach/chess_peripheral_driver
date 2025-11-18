@@ -140,6 +140,15 @@ class CppPeripheralState {
     handleCentralUnexpected(Commands.undo);
   }
 
+  Future<void> handleCentralRedo({
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  }) async {
+    handleCentralUnexpected(Commands.redo);
+  }
+
   Future<void> handleCentralUndoOffer() async {
     handleCentralUnexpected(Commands.undoOffer);
   }

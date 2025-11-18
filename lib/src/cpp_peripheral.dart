@@ -187,6 +187,21 @@ class CppPeripheral implements Peripheral {
   }
 
   @override
+  Future<void> handleRedo({
+    required String fen,
+    String? lastMove,
+    String? check,
+    String? time,
+  }) async {
+    await state.handleCentralRedo(
+      fen: fen,
+      lastMove: lastMove,
+      check: check,
+      time: time,
+    );
+  }
+
+  @override
   Future<void> handleUndoOffer() async {
     await state.handleCentralUndoOffer();
   }
