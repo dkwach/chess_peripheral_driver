@@ -253,6 +253,10 @@ class RoundScreenState extends State<RoundScreen> {
     if (ack == Ack.yes) {
       await peripheral.handleDrawOffer();
       _showMessage('Draw');
+      await peripheral.handleEnd(
+        reason: EndReasons.draw,
+        drawReason: DrawReasons.drawOffer,
+      );
     } else {
       await peripheral.handleReject();
     }
@@ -270,6 +274,10 @@ class RoundScreenState extends State<RoundScreen> {
       isOfferOngoing = false;
       if (ack) {
         _showMessage('Draw accepted');
+        peripheral.handleEnd(
+          reason: EndReasons.draw,
+          drawReason: DrawReasons.drawOffer,
+        );
       } else {
         _showMessage('Draw rejected');
       }
