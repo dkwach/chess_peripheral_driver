@@ -538,6 +538,12 @@ class RoundScreenState extends State<RoundScreen> {
             (move.to.rank == Rank.eighth && position.turn == Side.white));
   }
 
+  void _onTouchedSquare(Square square) {
+    if (peripheral.isFeatureSupported(Features.stateStream) &&
+        position.board.pieceAt(square) != null)
+      peripheral.handleState(fen: position.board.removePieceAt(square).fen);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -561,8 +567,56 @@ class RoundScreenState extends State<RoundScreen> {
     const Color pieceRemoveColor = Color.fromRGBO(255, 60, 60, 0.50);
     const Color pieceAddColor = Color.fromRGBO(60, 255, 60, 0.50);
     const Color pieceReplaceColor = Color.fromRGBO(60, 60, 255, 0.50);
+    const Color pieceChangeColor = Color.fromRGBO(20, 85, 30, 0.376);
+    final isSynchronized = peripheral.round.isStateSynchronized;
+    final isStreamSup = peripheral.isFeatureSupported(Features.stateStream);
     IMap<Square, SquareHighlight> highlights = IMap();
 
+    if (peripheral.round.fen != null && (isStreamSup || !isSynchronized)) {
+      final remColor = isSynchronized ? pieceChangeColor : pieceRemoveColor;
+      final addColor = isSynchronized ? pieceChangeColor : pieceAddColor;
+      final rplColor = isSynchronized ? pieceChangeColor : pieceReplaceColor;
+      final peripheralPieces = readPeripheralFen(peripheral.round.fen!);
+      final centralPieces = readFen(fen);
+      for (final entry in centralPieces.entries) {
+        final square = entry.key;
+        final centralPiece = entry.value;
+        final peripheralPiece = peripheralPieces[square];
+        if (peripheralPiece == null) {
+          highlights = highlights.add(
+              square,
+              SquareHighlight(
+                details: HighlightDetails(
+                  solidColor: addColor,
+                ),
+              ));
+        } else if ((peripheralPiece.role != null &&
+                peripheralPiece.role != centralPiece.role) ||
+            (peripheralPiece.color != null &&
+                peripheralPiece.color != centralPiece.color)) {
+          highlights = highlights.add(
+              square,
+              SquareHighlight(
+                details: HighlightDetails(
+                  solidColor: rplColor,
+                ),
+              ));
+        }
+      }
+      for (final entry in peripheralPieces.entries) {
+        final square = entry.key;
+        final centralPiece = centralPieces[square];
+        if (centralPiece == null) {
+          highlights = highlights.add(
+              square,
+              SquareHighlight(
+                details: HighlightDetails(
+                  solidColor: remColor,
+                ),
+              ));
+        }
+      }
+    }
     if (peripheral.round.rejectedMove != null) {
       final rejectedMove = NormalMove.fromUci(peripheral.round.rejectedMove!);
       highlights = highlights.add(
@@ -580,48 +634,6 @@ class RoundScreenState extends State<RoundScreen> {
             ),
           ));
     }
-    if (!peripheral.round.isStateSynchronized && peripheral.round.fen != null) {
-      final peripheralPieces = readPeripheralFen(peripheral.round.fen!);
-      final centralPieces = readFen(fen);
-      for (final entry in centralPieces.entries) {
-        final square = entry.key;
-        final centralPiece = entry.value;
-        final peripheralPiece = peripheralPieces[square];
-        if (peripheralPiece == null) {
-          highlights = highlights.add(
-              square,
-              SquareHighlight(
-                details: HighlightDetails(
-                  solidColor: pieceAddColor,
-                ),
-              ));
-        } else if ((peripheralPiece.role != null &&
-                peripheralPiece.role != centralPiece.role) ||
-            (peripheralPiece.color != null &&
-                peripheralPiece.color != centralPiece.color)) {
-          highlights = highlights.add(
-              square,
-              SquareHighlight(
-                details: HighlightDetails(
-                  solidColor: pieceReplaceColor,
-                ),
-              ));
-        }
-      }
-      for (final entry in peripheralPieces.entries) {
-        final square = entry.key;
-        final centralPiece = centralPieces[square];
-        if (centralPiece == null) {
-          highlights = highlights.add(
-              square,
-              SquareHighlight(
-                details: HighlightDetails(
-                  solidColor: pieceRemoveColor,
-                ),
-              ));
-        }
-      }
-    }
     return highlights;
   }
 
@@ -634,6 +646,7 @@ class RoundScreenState extends State<RoundScreen> {
               fen: fen,
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
               squareHighlights: _createSquareHighlights(),
+              onTouchedSquare: _onTouchedSquare,
               game: GameData(
                 playerSide: playMode == PlayMode.bot
                     ? PlayerSide.white
