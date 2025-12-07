@@ -13,7 +13,7 @@ dependencies:
   ble_backend_screens: ^1.2.0
   fluttertoast: ^9.0.0
   dartchess: ^0.11.1
-  chessground: ^7.2.0
+  chessground: ^7.3.0
   ble_chess_peripheral_driver:
     path: ../../
 
