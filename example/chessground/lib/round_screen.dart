@@ -313,7 +313,7 @@ class RoundScreenState extends State<RoundScreen> {
       Features.drawOffer,
       Features.getState,
       Features.setState,
-      Features.stateStream,
+      Features.submoveState,
       Features.drawReason,
       Features.option,
     ];
@@ -539,7 +539,7 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   void _onTouchedSquare(Square square) {
-    if (peripheral.isFeatureSupported(Features.stateStream) &&
+    if (peripheral.isFeatureSupported(Features.submoveState) &&
         position.board.pieceAt(square) != null)
       peripheral.handleState(fen: position.board.removePieceAt(square).fen);
   }
@@ -569,10 +569,10 @@ class RoundScreenState extends State<RoundScreen> {
     const Color pieceReplaceColor = Color.fromRGBO(60, 60, 255, 0.50);
     const Color pieceChangeColor = Color.fromRGBO(20, 85, 30, 0.376);
     final isSynchronized = peripheral.round.isStateSynchronized;
-    final isStreamSup = peripheral.isFeatureSupported(Features.stateStream);
+    final isSubmoveSup = peripheral.isFeatureSupported(Features.submoveState);
     IMap<Square, SquareHighlight> highlights = IMap();
 
-    if (peripheral.round.fen != null && (isStreamSup || !isSynchronized)) {
+    if (peripheral.round.fen != null && (isSubmoveSup || !isSynchronized)) {
       final remColor = isSynchronized ? pieceChangeColor : pieceRemoveColor;
       final addColor = isSynchronized ? pieceChangeColor : pieceAddColor;
       final rplColor = isSynchronized ? pieceChangeColor : pieceReplaceColor;

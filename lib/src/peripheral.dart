@@ -89,7 +89,7 @@ abstract class Peripheral {
   Future<void> handleGetState();
   // set_state feature
   Future<void> handleSetState();
-  // state_stream feature
+  // submove_state feature
   Future<void> handleState({
     required String fen,
   });

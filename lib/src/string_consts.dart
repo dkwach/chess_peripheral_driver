@@ -1,7 +1,7 @@
 class Features {
   static const getState = 'get_state';
   static const setState = 'set_state';
-  static const stateStream = 'state_stream';
+  static const submoveState = 'submove_state';
   static const lastMove = 'last_move';
   static const check = 'check';
   static const moved = 'moved';
