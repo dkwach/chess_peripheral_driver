@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  ble_backend_factory: ^1.4.1
+  ble_backend_factory: ^1.4.3
   ble_backend_screens: ^1.2.0
   fluttertoast: ^9.0.0
   dartchess: ^0.11.1
