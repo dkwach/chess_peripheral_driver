@@ -19,21 +19,7 @@ class CppPeripheral implements Peripheral {
     required List<String> variants,
   }) : serial = stringSerial {
     cppOptions = CppOptions(peripheral: this);
-    serial.stringStream.listen(handlePeripheralCommand);
-    serial.startNotifications();
-    final checkVariants = IterableExchangeState(
-      variants.iterator,
-      cppVariants,
-      Commands.variant,
-      InitializedState(),
-    );
-    final checkFeatures = IterableExchangeState(
-      features.iterator,
-      cppFeatures,
-      Commands.feature,
-      checkVariants,
-    );
-    transitionTo(checkFeatures);
+    init(features: features, variants: variants);
   }
 
   final StringSerial serial;
@@ -258,6 +244,27 @@ class CppPeripheral implements Peripheral {
   Future<void> sendCommandToPrtipheral(String cmd) async {
     logger.info('Central: $cmd');
     await serial.send(str: cmd);
+  }
+
+  Future<void> init({
+    required List<String> features,
+    required List<String> variants,
+  }) async {
+    serial.stringStream.listen(handlePeripheralCommand);
+    await serial.startNotifications();
+    final checkVariants = IterableExchangeState(
+      variants.iterator,
+      cppVariants,
+      Commands.variant,
+      InitializedState(),
+    );
+    final checkFeatures = IterableExchangeState(
+      features.iterator,
+      cppFeatures,
+      Commands.feature,
+      checkVariants,
+    );
+    transitionTo(checkFeatures);
   }
 
   void transitionTo(CppPeripheralState nextState) {
