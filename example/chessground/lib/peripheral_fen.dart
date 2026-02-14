@@ -69,7 +69,7 @@ PeripheralPieces readPeripheralFen(String fen) {
   return pieces;
 }
 
-bool isPeripheralFenSettable(String? fen) {
+bool isPeripheralFenGettable(String? fen) {
   return fen != null && !fen.contains(RegExp(r'[uU?]'));
 }
 

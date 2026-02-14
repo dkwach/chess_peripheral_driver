@@ -356,7 +356,7 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   Future<Position> _waitForPeripheralPosition() async {
-    if (isPeripheralFenSettable(peripheral.round.fen))
+    if (isPeripheralFenGettable(peripheral.round.fen))
       return Chess.fromSetup(Setup.parseFen(peripheral.round.fen!));
 
     await showDialog(
@@ -367,7 +367,7 @@ class RoundScreenState extends State<RoundScreen> {
           builder: (context, setState) {
             StreamSubscription? sub;
             sub ??= peripheral.roundUpdateStream.listen((_) {
-              if (isPeripheralFenSettable(peripheral.round.fen)) {
+              if (isPeripheralFenGettable(peripheral.round.fen)) {
                 Navigator.of(context).pop();
                 sub?.cancel();
               }
@@ -395,7 +395,7 @@ class RoundScreenState extends State<RoundScreen> {
       },
     );
 
-    return isPeripheralFenSettable(peripheral.round.fen)
+    return isPeripheralFenGettable(peripheral.round.fen)
         ? Chess.fromSetup(Setup.parseFen(peripheral.round.fen!))
         : Chess.initial;
   }
