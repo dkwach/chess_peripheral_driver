@@ -41,7 +41,6 @@ enum Ack {
 class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   Peripheral peripheral = DummyPeripheral();
-  bool isAutocompleteOngoing = false;
   bool isOfferOngoing = false;
   Position position = Chess.initial;
   Side orientation = Side.white;
@@ -114,7 +113,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handlePeripheralRoundInitialized(_) {
     setState(() {
-      isAutocompleteOngoing = false;
       isOfferOngoing = false;
       if (!peripheral.round.isVariantSupported) {
         _showMessage('Unsupported variant');
@@ -124,7 +122,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handlePeripheralRoundUpdate(_) {
     setState(() {
-      isAutocompleteOngoing = false;
       isOfferOngoing = false;
     });
   }
@@ -177,7 +174,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handleAutocomplete() {
     setState(() {
-      isAutocompleteOngoing = true;
       peripheral.handleSetState();
     });
   }
@@ -706,9 +702,8 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildAutocompleteButton() => FilledButton.icon(
         icon: const Icon(Icons.auto_awesome_rounded),
         label: Text('Autocomplete'),
-        onPressed: peripheral.round.isStateSettable && !isAutocompleteOngoing
-            ? _handleAutocomplete
-            : null,
+        onPressed:
+            peripheral.round.isStateSettable ? _handleAutocomplete : null,
       );
 
   Widget _buildGetRoundButton() => FilledButton.icon(

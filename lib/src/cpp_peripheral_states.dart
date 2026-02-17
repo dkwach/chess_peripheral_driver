@@ -153,6 +153,8 @@ class IdleState extends CppPeripheralState {
 
   @override
   Future<void> handleCentralSetState() async {
+    round.isStateSettable = false;
+    sendRoundUpdateToCentral();
     await sendCommandToPrtipheral(Commands.setState);
   }
 

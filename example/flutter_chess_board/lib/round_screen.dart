@@ -28,7 +28,6 @@ class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   ChessBoardController chessController = ChessBoardController();
   Peripheral peripheral = DummyPeripheral();
-  bool isAutocompleteOngoing = false;
 
   BlePeripheral get blePeripheral => widget.blePeripheral;
   BleConnector get bleConnector => widget.bleConnector;
@@ -66,7 +65,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handlePeripheralRoundInitialized(_) {
     setState(() {
-      isAutocompleteOngoing = false;
       if (!peripheral.round.isVariantSupported) {
         _showMessage('Unsupported variant');
       }
@@ -74,9 +72,7 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   void _handlePeripheralRoundUpdate(_) {
-    setState(() {
-      isAutocompleteOngoing = false;
-    });
+    setState(() {});
   }
 
   void _handlePeripheralStateSynchronize(bool isSynchronized) {
@@ -127,7 +123,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handleAutocomplete() {
     setState(() {
-      isAutocompleteOngoing = true;
       peripheral.handleSetState();
     });
   }
@@ -227,9 +222,8 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildAutocompleteButton() => FilledButton.icon(
         icon: const Icon(Icons.auto_awesome_rounded),
         label: Text('Autocomplete'),
-        onPressed: peripheral.round.isStateSettable && !isAutocompleteOngoing
-            ? _handleAutocomplete
-            : null,
+        onPressed:
+            peripheral.round.isStateSettable ? _handleAutocomplete : null,
       );
 
   Widget _buildControlButtons() => SizedBox(
