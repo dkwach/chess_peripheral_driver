@@ -700,14 +700,14 @@ class RoundScreenState extends State<RoundScreen> {
       );
 
   Widget _buildAutocompleteButton() => FilledButton.icon(
-        icon: const Icon(Icons.auto_awesome_rounded),
+        icon: const Icon(Icons.auto_fix_high_rounded),
         label: Text('Autocomplete'),
         onPressed:
             peripheral.round.isStateSettable ? _handleAutocomplete : null,
       );
 
   Widget _buildGetRoundButton() => FilledButton.icon(
-        icon: const Icon(Icons.download_rounded),
+        icon: const Icon(Icons.preview_rounded),
         label: Text('Get Round'),
         onPressed: peripheral.isInitialized ? _handleGetRound : null,
       );
