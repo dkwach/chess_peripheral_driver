@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  ble_backend_factory: ^1.4.3
-  ble_backend_screens: ^1.2.0
+  ble_backend_factory: ^1.5.0
+  ble_backend_screens: ^1.3.0
   fluttertoast: ^9.0.0
   flutter_chess_board:
     git:
