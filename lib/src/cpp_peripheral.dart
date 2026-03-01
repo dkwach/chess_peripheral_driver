@@ -278,7 +278,6 @@ class CppPeripheral implements Peripheral {
   @override
   Future<void> dispose() async {
     await subscription?.cancel();
-    await serial.stopNotifications();
     await initializedController.close();
     await roundInitializedController.close();
     await roundUpdateController.close();
