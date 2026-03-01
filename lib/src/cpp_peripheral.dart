@@ -44,6 +44,7 @@ class CppPeripheral implements Peripheral {
   final drawOfferAckController = StreamController<bool>.broadcast();
   final optionsUpdateController = StreamController<void>.broadcast();
   late CppPeripheralState state;
+  StreamSubscription<String>? subscription;
 
   @override
   bool isFeatureSupported(String feature) => cppFeatures.contains(feature);
@@ -250,7 +251,7 @@ class CppPeripheral implements Peripheral {
     required List<String> features,
     required List<String> variants,
   }) async {
-    serial.stringStream.listen(handlePeripheralCommand);
+    subscription = serial.stringStream.listen(handlePeripheralCommand);
     await serial.startNotifications();
     final checkVariants = IterableExchangeState(
       variants.iterator,
@@ -276,6 +277,8 @@ class CppPeripheral implements Peripheral {
 
   @override
   Future<void> dispose() async {
+    await subscription?.cancel();
+    await serial.stopNotifications();
     await initializedController.close();
     await roundInitializedController.close();
     await roundUpdateController.close();
