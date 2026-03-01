@@ -274,20 +274,21 @@ class CppPeripheral implements Peripheral {
     state.onEnter();
   }
 
-  void dispose() {
-    initializedController.close();
-    roundInitializedController.close();
-    roundUpdateController.close();
-    stateSynchronizeController.close();
-    moveController.close();
-    errController.close();
-    msgController.close();
-    movedController.close();
-    resignController.close();
-    undoOfferController.close();
-    undoOfferAckController.close();
-    drawOfferController.close();
-    drawOfferAckController.close();
-    optionsUpdateController.close();
+  @override
+  Future<void> dispose() async {
+    await initializedController.close();
+    await roundInitializedController.close();
+    await roundUpdateController.close();
+    await stateSynchronizeController.close();
+    await moveController.close();
+    await errController.close();
+    await msgController.close();
+    await movedController.close();
+    await resignController.close();
+    await undoOfferController.close();
+    await undoOfferAckController.close();
+    await drawOfferController.close();
+    await drawOfferAckController.close();
+    await optionsUpdateController.close();
   }
 }

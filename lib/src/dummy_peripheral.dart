@@ -122,4 +122,7 @@ class DummyPeripheral implements Peripheral {
   Future<void> handleOptionsBegin() async {}
   @override
   Future<void> handleOptionsReset() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
