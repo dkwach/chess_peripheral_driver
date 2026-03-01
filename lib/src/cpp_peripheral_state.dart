@@ -99,7 +99,7 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Commands.begin);
+    handleCentralIgnored(Commands.begin);
   }
 
   Future<void> handleCentralMove({
@@ -107,11 +107,11 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Commands.move);
+    handleCentralIgnored(Commands.move);
   }
 
   Future<void> handleCentralReject() async {
-    handleCentralUnexpected(Commands.nok);
+    handleCentralIgnored(Commands.nok);
   }
 
   Future<void> handleCentralEnd({
@@ -120,15 +120,15 @@ class CppPeripheralState {
     String? variantReason,
     String? score,
   }) async {
-    handleCentralUnexpected(Commands.end);
+    handleCentralIgnored(Commands.end);
   }
 
   Future<void> handleCentralErr({required String err}) async {
-    handleCentralUnexpected(Commands.err);
+    handleCentralIgnored(Commands.err);
   }
 
   Future<void> handleCentralMsg({required String msg}) async {
-    handleCentralUnexpected(Commands.msg);
+    handleCentralIgnored(Commands.msg);
   }
 
   Future<void> handleCentralUndo({
@@ -137,7 +137,7 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Commands.undo);
+    handleCentralIgnored(Commands.undo);
   }
 
   Future<void> handleCentralRedo({
@@ -146,27 +146,27 @@ class CppPeripheralState {
     String? check,
     String? time,
   }) async {
-    handleCentralUnexpected(Commands.redo);
+    handleCentralIgnored(Commands.redo);
   }
 
   Future<void> handleCentralUndoOffer() async {
-    handleCentralUnexpected(Commands.undoOffer);
+    handleCentralIgnored(Commands.undoOffer);
   }
 
   Future<void> handleCentralDrawOffer() async {
-    handleCentralUnexpected(Commands.drawOffer);
+    handleCentralIgnored(Commands.drawOffer);
   }
 
   Future<void> handleCentralGetState() async {
-    handleCentralUnexpected(Commands.getState);
+    handleCentralIgnored(Commands.getState);
   }
 
   Future<void> handleCentralSetState() async {
-    handleCentralUnexpected(Commands.setState);
+    handleCentralIgnored(Commands.setState);
   }
 
   Future<void> handleCentralState({required String fen}) async {
-    handleCentralUnexpected(Commands.state);
+    handleCentralIgnored(Commands.state);
   }
 
   Future<void> handleOptionsBegin() async {
@@ -186,5 +186,9 @@ class CppPeripheralState {
 
   void handleCentralUnexpected(String event) {
     sendErrToCentral('Unexpected: $runtimeType: central $event');
+  }
+
+  void handleCentralIgnored(String event) {
+    logger.info('Ignored: $runtimeType: central $event');
   }
 }
