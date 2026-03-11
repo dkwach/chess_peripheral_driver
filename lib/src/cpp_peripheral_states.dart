@@ -161,13 +161,6 @@ class IdleState extends CppPeripheralState {
   }
 
   @override
-  Future<void> handleCentralState({
-    required String fen,
-  }) async {
-    await sendCommandToPrtipheral(join(Commands.state, fen));
-  }
-
-  @override
   Future<void> handleOptionsBegin() async {
     if (!context.areCppOptionsInitialized) {
       await sendCommandToPrtipheral(Commands.optionsBegin);
@@ -275,6 +268,13 @@ class RoundState extends IdleState {
   Future<void> handleCentralDrawOffer() async {
     transitionTo(CentralDrawOfferState());
     await sendCommandToPrtipheral(Commands.drawOffer);
+  }
+
+  @override
+  Future<void> handleCentralState({
+    required String fen,
+  }) async {
+    await sendCommandToPrtipheral(join(Commands.state, fen));
   }
 
   Future<void> handleCentralShift({
