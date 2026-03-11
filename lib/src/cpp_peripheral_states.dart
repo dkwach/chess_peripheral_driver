@@ -103,14 +103,14 @@ class IdleState extends CppPeripheralState {
     if (variant != null && round.variant != variant) {
       await sendCommandToPrtipheral(join(Commands.setVariant, variant));
       round.isVariantSupported = isVariantSupported(variant);
-      if (!round.isVariantSupported) {
-        round.variant = variant;
-        transitionTo(IdleState());
-        sendRoundInitializedToCentral();
-        return;
-      }
+      round.variant = variant;
     }
-    round.variant = variant;
+
+    if (!round.isVariantSupported) {
+      transitionTo(IdleState());
+      sendRoundInitializedToCentral();
+      return;
+    }
 
     if (side != null && isFeatureSupported(Features.side)) {
       await sendCommandToPrtipheral(join(Commands.side, side));
