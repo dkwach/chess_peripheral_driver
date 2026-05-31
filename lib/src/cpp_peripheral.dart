@@ -242,7 +242,7 @@ class CppPeripheral implements Peripheral {
     await state.handlePeripheralCommand(cmd);
   }
 
-  Future<void> sendCommandToPrtipheral(String cmd) async {
+  Future<void> sendCommandToPeripheral(String cmd) async {
     logger.info('Central: $cmd');
     await serial.send(str: cmd);
   }

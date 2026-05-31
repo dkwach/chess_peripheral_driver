@@ -41,7 +41,7 @@ class IterableExchangeState extends CppPeripheralState {
 
   void moveIterator() {
     if (iter.moveNext())
-      sendCommandToPrtipheral(join(cmdName, iter.current));
+      sendCommandToPeripheral(join(cmdName, iter.current));
     else
       transitionTo(nextState);
   }
@@ -101,7 +101,7 @@ class IdleState extends CppPeripheralState {
     round.isMoveRejected = false;
 
     if (variant != null && round.variant != variant) {
-      await sendCommandToPrtipheral(join(Commands.setVariant, variant));
+      await sendCommandToPeripheral(join(Commands.setVariant, variant));
       round.isVariantSupported = isVariantSupported(variant);
       round.variant = variant;
     }
@@ -113,20 +113,20 @@ class IdleState extends CppPeripheralState {
     }
 
     if (side != null && isFeatureSupported(Features.side)) {
-      await sendCommandToPrtipheral(join(Commands.side, side));
+      await sendCommandToPeripheral(join(Commands.side, side));
     }
 
     transitionTo(RoundBeginState());
-    await sendCommandToPrtipheral(join(Commands.begin, fen));
+    await sendCommandToPeripheral(join(Commands.begin, fen));
 
     if (lastMove != null && isFeatureSupported(Features.lastMove)) {
-      await sendCommandToPrtipheral(join(Commands.lastMove, lastMove));
+      await sendCommandToPeripheral(join(Commands.lastMove, lastMove));
     }
     if (check != null && isFeatureSupported(Features.check)) {
-      await sendCommandToPrtipheral(join(Commands.check, check));
+      await sendCommandToPeripheral(join(Commands.check, check));
     }
     if (time != null && isFeatureSupported(Features.time)) {
-      await sendCommandToPrtipheral(join(Commands.time, time));
+      await sendCommandToPeripheral(join(Commands.time, time));
     }
   }
 
@@ -134,7 +134,7 @@ class IdleState extends CppPeripheralState {
   Future<void> handleCentralErr({
     required String err,
   }) async {
-    await sendCommandToPrtipheral(join(Commands.err, err));
+    await sendCommandToPeripheral(join(Commands.err, err));
   }
 
   @override
@@ -142,13 +142,13 @@ class IdleState extends CppPeripheralState {
     required String msg,
   }) async {
     if (isFeatureSupported(Features.msg)) {
-      await sendCommandToPrtipheral(join(Commands.msg, msg));
+      await sendCommandToPeripheral(join(Commands.msg, msg));
     }
   }
 
   @override
   Future<void> handleCentralGetState() async {
-    await sendCommandToPrtipheral(Commands.getState);
+    await sendCommandToPeripheral(Commands.getState);
   }
 
   @override
@@ -156,20 +156,20 @@ class IdleState extends CppPeripheralState {
     if (round.isStateSettable) {
       round.isStateSettable = false;
       sendRoundUpdateToCentral();
-      await sendCommandToPrtipheral(Commands.setState);
+      await sendCommandToPeripheral(Commands.setState);
     }
   }
 
   @override
   Future<void> handleOptionsBegin() async {
     if (!context.areCppOptionsInitialized) {
-      await sendCommandToPrtipheral(Commands.optionsBegin);
+      await sendCommandToPeripheral(Commands.optionsBegin);
     }
   }
 
   @override
   Future<void> handleOptionsReset() async {
-    await sendCommandToPrtipheral(Commands.optionsReset);
+    await sendCommandToPeripheral(Commands.optionsReset);
     context.cppOptions.reset();
     sendOptionsUpdateToCentral();
   }
@@ -179,7 +179,7 @@ class IdleState extends CppPeripheralState {
     required String name,
     required String value,
   }) async {
-    await sendCommandToPrtipheral(join(Commands.setOption, join(name, value)));
+    await sendCommandToPeripheral(join(Commands.setOption, join(name, value)));
   }
 }
 
@@ -193,13 +193,13 @@ class RoundState extends IdleState {
     round.isMoveRejected = false;
     sendRoundUpdateToCentral();
 
-    await sendCommandToPrtipheral(join(Commands.move, move));
+    await sendCommandToPeripheral(join(Commands.move, move));
 
     if (check != null && isFeatureSupported(Features.check)) {
-      await sendCommandToPrtipheral(join(Commands.check, check));
+      await sendCommandToPeripheral(join(Commands.check, check));
     }
     if (time != null && isFeatureSupported(Features.time)) {
-      await sendCommandToPrtipheral(join(Commands.time, time));
+      await sendCommandToPeripheral(join(Commands.time, time));
     }
   }
 
@@ -211,18 +211,18 @@ class RoundState extends IdleState {
     String? score,
   }) async {
     if (drawReason != null && isFeatureSupported(Features.drawReason)) {
-      await sendCommandToPrtipheral(join(Commands.end, drawReason));
+      await sendCommandToPeripheral(join(Commands.end, drawReason));
     } else if (variantReason != null &&
         isFeatureSupported(Features.variantReason)) {
-      await sendCommandToPrtipheral(join(Commands.end, variantReason));
+      await sendCommandToPeripheral(join(Commands.end, variantReason));
     } else if (reason != null) {
-      await sendCommandToPrtipheral(join(Commands.end, reason));
+      await sendCommandToPeripheral(join(Commands.end, reason));
     } else {
-      sendCommandToPrtipheral(join(Commands.end, EndReasons.undefined));
+      sendCommandToPeripheral(join(Commands.end, EndReasons.undefined));
     }
 
     if (score != null && isFeatureSupported(Features.score)) {
-      await sendCommandToPrtipheral(join(Commands.score, score));
+      await sendCommandToPeripheral(join(Commands.score, score));
     }
   }
 
@@ -261,20 +261,20 @@ class RoundState extends IdleState {
   @override
   Future<void> handleCentralUndoOffer() async {
     transitionTo(CentralUndoOfferState());
-    await sendCommandToPrtipheral(Commands.undoOffer);
+    await sendCommandToPeripheral(Commands.undoOffer);
   }
 
   @override
   Future<void> handleCentralDrawOffer() async {
     transitionTo(CentralDrawOfferState());
-    await sendCommandToPrtipheral(Commands.drawOffer);
+    await sendCommandToPeripheral(Commands.drawOffer);
   }
 
   @override
   Future<void> handleCentralState({
     required String fen,
   }) async {
-    await sendCommandToPrtipheral(join(Commands.state, fen));
+    await sendCommandToPeripheral(join(Commands.state, fen));
   }
 
   Future<void> handleCentralShift({
@@ -287,16 +287,16 @@ class RoundState extends IdleState {
     round.isMoveRejected = false;
     sendRoundUpdateToCentral();
 
-    await sendCommandToPrtipheral(join(cmd, fen));
+    await sendCommandToPeripheral(join(cmd, fen));
 
     if (lastMove != null && isFeatureSupported(Features.lastMove)) {
-      await sendCommandToPrtipheral(join(Commands.lastMove, lastMove));
+      await sendCommandToPeripheral(join(Commands.lastMove, lastMove));
     }
     if (check != null && isFeatureSupported(Features.check)) {
-      await sendCommandToPrtipheral(join(Commands.check, check));
+      await sendCommandToPeripheral(join(Commands.check, check));
     }
     if (time != null && isFeatureSupported(Features.time)) {
-      await sendCommandToPrtipheral(join(Commands.time, time));
+      await sendCommandToPeripheral(join(Commands.time, time));
     }
   }
 }
@@ -394,9 +394,9 @@ class PeripheralMoveState extends RoundOngoingState {
 
     final last = round.lastMove!;
     if (move == last) {
-      await sendCommandToPrtipheral(Commands.ok);
+      await sendCommandToPeripheral(Commands.ok);
     } else if (hasUciPromotion(move) && !hasUciPromotion(last)) {
-      await sendCommandToPrtipheral(join(Commands.promote, move));
+      await sendCommandToPeripheral(join(Commands.promote, move));
     } else {
       handleCentralUnexpected(Commands.move);
       transitionTo(IdleState());
@@ -405,10 +405,10 @@ class PeripheralMoveState extends RoundOngoingState {
 
     transitionTo(RoundOngoingState());
     if (check != null && isFeatureSupported(Features.check)) {
-      await sendCommandToPrtipheral(join(Commands.check, check));
+      await sendCommandToPeripheral(join(Commands.check, check));
     }
     if (time != null && isFeatureSupported(Features.time)) {
-      await sendCommandToPrtipheral(join(Commands.time, time));
+      await sendCommandToPeripheral(join(Commands.time, time));
     }
   }
 
@@ -418,7 +418,7 @@ class PeripheralMoveState extends RoundOngoingState {
     sendRoundUpdateToCentral();
 
     transitionTo(RoundOngoingState());
-    await sendCommandToPrtipheral(Commands.nok);
+    await sendCommandToPeripheral(Commands.nok);
   }
 }
 
@@ -426,13 +426,13 @@ class PeripheralUndoOfferState extends RoundOngoingState {
   @override
   Future<void> handleCentralUndoOffer() async {
     transitionTo(RoundOngoingState());
-    await sendCommandToPrtipheral(Commands.ok);
+    await sendCommandToPeripheral(Commands.ok);
   }
 
   @override
   Future<void> handleCentralReject() async {
     transitionTo(RoundOngoingState());
-    await sendCommandToPrtipheral(Commands.nok);
+    await sendCommandToPeripheral(Commands.nok);
   }
 }
 
@@ -455,13 +455,13 @@ class PeripheralDrawOfferState extends RoundOngoingState {
   @override
   Future<void> handleCentralDrawOffer() async {
     transitionTo(RoundOngoingState());
-    await sendCommandToPrtipheral(Commands.ok);
+    await sendCommandToPeripheral(Commands.ok);
   }
 
   @override
   Future<void> handleCentralReject() async {
     transitionTo(RoundOngoingState());
-    await sendCommandToPrtipheral(Commands.nok);
+    await sendCommandToPeripheral(Commands.nok);
   }
 }
 

@@ -77,8 +77,8 @@ class CppPeripheralState {
     context.optionsUpdateController.add(null);
   }
 
-  Future<void> sendCommandToPrtipheral(String cmd) async {
-    await context.sendCommandToPrtipheral(cmd);
+  Future<void> sendCommandToPeripheral(String cmd) async {
+    await context.sendCommandToPeripheral(cmd);
   }
 
   void transitionTo(CppPeripheralState nextState) {
@@ -88,7 +88,7 @@ class CppPeripheralState {
   void onEnter() {}
 
   Future<void> handlePeripheralCommand(String cmd) async {
-    sendErrToCentral('Unexpected: $runtimeType: periphrtal $cmd');
+    sendErrToCentral('Unexpected: $runtimeType: peripheral $cmd');
   }
 
   Future<void> handleCentralBegin({
