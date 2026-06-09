@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import 'peripheral_preview_chess_board.dart';
+
 class RoundScreen extends StatefulWidget {
   RoundScreen({
     required this.bleConnector,
@@ -29,6 +31,7 @@ class RoundScreenState extends State<RoundScreen> {
   ChessBoardController chessController = ChessBoardController();
   Peripheral peripheral = DummyPeripheral();
   bool _isRoundActive = false;
+  List<UnknownPiece> _unknownPieces = [];
 
   BlePeripheral get blePeripheral => widget.blePeripheral;
   BleConnector get bleConnector => widget.bleConnector;
@@ -37,6 +40,7 @@ class RoundScreenState extends State<RoundScreen> {
   Future<void> _beginNewRound() async {
     setState(() {
       _isRoundActive = true;
+      _unknownPieces = [];
     });
     chessController.resetBoard();
     await peripheral.handleBegin(
@@ -130,17 +134,12 @@ class RoundScreenState extends State<RoundScreen> {
 
     if (_isRoundActive || fen == null) return;
 
-    bool isPeripheralFenGettable = !fen.contains(RegExp(r'[uU?]'));
-    if (isPeripheralFenGettable) {
-      final tokens = fen.trim().split(RegExp(r'\s+'));
-      final missingFenFields = ['w', '-', '-', '0', '1'];
-      while (tokens.length < 6) {
-        tokens.add(missingFenFields[tokens.length - 1]);
-      }
-      fen = tokens.join(' ');
-      game.load(fen);
+    final previewFen = createPeripheralPreviewFen(fen);
+    if (game.load(previewFen.fen)) {
+      _unknownPieces = previewFen.unknownPieces;
     } else {
-      _showMessage('E-Board can not recognize some of pieces: ${fen}');
+      _unknownPieces = [];
+      _showMessage('E-Board sent invalid position: ${fen}');
     }
   }
 
@@ -221,8 +220,9 @@ class RoundScreenState extends State<RoundScreen> {
     return uci;
   }
 
-  Widget _buildChessBoardWidget() => ChessBoard(
+  Widget _buildChessBoardWidget() => PeripheralPreviewChessBoard(
         controller: chessController,
+        unknownPieces: _unknownPieces,
         boardColor: BoardColor.darkBrown,
         boardOrientation: PlayerColor.white,
         onMove: _handleCentralMove,
