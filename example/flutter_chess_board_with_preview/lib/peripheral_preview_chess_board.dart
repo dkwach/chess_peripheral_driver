@@ -21,17 +21,17 @@ class PeripheralPreviewState {
   const PeripheralPreviewState({
     required this.fen,
     required this.unknownPieces,
-    required this.canStartRound,
+    required this.canBeginRound,
   });
 
   const PeripheralPreviewState.empty()
       : fen = null,
         unknownPieces = const [],
-        canStartRound = false;
+        canBeginRound = false;
 
   final String? fen;
   final List<UnknownPiece> unknownPieces;
-  final bool canStartRound;
+  final bool canBeginRound;
 }
 
 bool _isPeripheralPreviewFenGettable(String? fen) {
@@ -53,7 +53,7 @@ PeripheralPreviewState createPeripheralPreviewState(String fen) {
   return PeripheralPreviewState(
     fen: completedTokens.join(' '),
     unknownPieces: result.unknownPieces,
-    canStartRound: _isPeripheralPreviewFenGettable(fen),
+    canBeginRound: _isPeripheralPreviewFenGettable(fen),
   );
 }
 
@@ -107,7 +107,7 @@ PeripheralPreviewState _readPreviewBoardFen(String boardFen) {
   return PeripheralPreviewState(
     fen: normalizedRows.join('/'),
     unknownPieces: unknownPieces,
-    canStartRound: false,
+    canBeginRound: false,
   );
 }
 
@@ -248,8 +248,8 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
         ),
         FilledButton.icon(
           icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('Start'),
-          onPressed: _previewState.canStartRound
+          label: const Text('Begin Round'),
+          onPressed: _previewState.canBeginRound
               ? () => Navigator.of(context).pop(_previewState.fen)
               : null,
         ),
