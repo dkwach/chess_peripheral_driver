@@ -31,18 +31,29 @@ class RoundScreenState extends State<RoundScreen> {
   ChessBoardController chessController = ChessBoardController();
   Peripheral peripheral = DummyPeripheral();
   bool _isRoundActive = false;
-  List<UnknownPiece> _unknownPieces = [];
 
   BlePeripheral get blePeripheral => widget.blePeripheral;
   BleConnector get bleConnector => widget.bleConnector;
   Chess get game => chessController.game;
+  String? get lastMove {
+    final history = game.history;
+    if (history.isEmpty) return null;
+    final lastMove = history.last.move;
+    String uci = lastMove.fromAlgebraic + lastMove.toAlgebraic;
+    final promotion = lastMove.promotion;
+    if (promotion != null) uci += promotion.name;
+    return uci;
+  }
 
-  Future<void> _beginNewRound() async {
+  Future<void> _beginRound({String? fen}) async {
     setState(() {
       _isRoundActive = true;
-      _unknownPieces = [];
     });
-    chessController.resetBoard();
+    if (fen != null) {
+      chessController.loadFen(fen);
+    } else {
+      chessController.resetBoard();
+    }
     await peripheral.handleBegin(
       fen: chessController.getFen(),
       variant: Variants.standard,
@@ -56,7 +67,22 @@ class RoundScreenState extends State<RoundScreen> {
       _isRoundActive = false;
     });
     await peripheral.handleEnd(reason: EndReasons.abort);
-    await peripheral.handleGetState();
+  }
+
+  Future<void> _showPreview() async {
+    final fen = await showDialog<String>(
+      context: context,
+      builder: (context) => PeripheralPreviewDialog(
+        fen: () => peripheral.round.fen,
+        roundUpdateStream: peripheral.roundUpdateStream,
+        requestState: peripheral.handleGetState,
+        boardColor: BoardColor.darkBrown,
+        boardOrientation: PlayerColor.white,
+      ),
+    );
+    if (fen != null) {
+      await _beginRound(fen: fen);
+    }
   }
 
   void _showMessage(String msg) {
@@ -74,7 +100,9 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _handlePeripheralInitialized(_) async {
-    await peripheral.handleGetState();
+    setState(() {
+      _isRoundActive = false;
+    });
   }
 
   void _handlePeripheralRoundInitialized(_) {
@@ -82,12 +110,6 @@ class RoundScreenState extends State<RoundScreen> {
       if (!peripheral.round.isVariantSupported) {
         _showMessage('Unsupported variant');
       }
-    });
-  }
-
-  void _handlePeripheralRoundUpdate(_) {
-    setState(() {
-      _handlePreview();
     });
   }
 
@@ -128,21 +150,6 @@ class RoundScreenState extends State<RoundScreen> {
     }
   }
 
-  Future<void> _handlePreview() async {
-    String? fen = peripheral.round.fen;
-    print('fen from round update: ${fen}');
-
-    if (_isRoundActive || fen == null) return;
-
-    final previewFen = createPeripheralPreviewFen(fen);
-    if (game.load(previewFen.fen)) {
-      _unknownPieces = previewFen.unknownPieces;
-    } else {
-      _unknownPieces = [];
-      _showMessage('E-Board sent invalid position: ${fen}');
-    }
-  }
-
   Future<void> _initPeripheral() async {
     final mtu = bleConnector.createMtu();
     final requestedMtu = await mtu.request(mtu: maxStringSize);
@@ -161,13 +168,7 @@ class RoundScreenState extends State<RoundScreen> {
         txCharacteristicId: characteristicUuidTx,
       ),
     );
-    final features = [
-      Features.msg,
-      Features.lastMove,
-      Features.side,
-      Features.option,
-      Features.getState
-    ];
+    final features = [Features.msg, Features.option, Features.getState];
     final variants = [Variants.standard];
     peripheral = CppPeripheral(
       stringSerial: serial,
@@ -176,7 +177,6 @@ class RoundScreenState extends State<RoundScreen> {
     );
     peripheral.initializedStream.listen(_handlePeripheralInitialized);
     peripheral.roundInitializedStream.listen(_handlePeripheralRoundInitialized);
-    peripheral.roundUpdateStream.listen(_handlePeripheralRoundUpdate);
     peripheral.stateSynchronizeStream.listen(_handlePeripheralStateSynchronize);
     peripheral.moveStream.listen(_handlePeripheralMove);
     peripheral.errStream.listen(_showError);
@@ -210,36 +210,35 @@ class RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
-  String? get lastMove {
-    final history = game.history;
-    if (history.isEmpty) return null;
-    final lastMove = history.last.move;
-    String uci = lastMove.fromAlgebraic + lastMove.toAlgebraic;
-    final promotion = lastMove.promotion;
-    if (promotion != null) uci += promotion.name;
-    return uci;
-  }
-
-  Widget _buildChessBoardWidget() => PeripheralPreviewChessBoard(
+  Widget _buildChessBoardWidget() => ChessBoard(
         controller: chessController,
-        unknownPieces: _unknownPieces,
         boardColor: BoardColor.darkBrown,
         boardOrientation: PlayerColor.white,
         onMove: _handleCentralMove,
       );
 
-  Widget _buildNewRoundButton() => FilledButton.icon(
-        icon: const Icon(Icons.refresh_rounded),
-        label: Text('New'),
+  Widget _buildStartButton() => FilledButton.icon(
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('Start'),
         onPressed:
-            peripheral.isInitialized && !_isRoundActive ? _beginNewRound : null,
+            peripheral.isInitialized && !_isRoundActive ? _beginRound : null,
       );
 
-  Widget _buildStopRoundButton() => FilledButton.icon(
+  Widget _buildStopButton() => FilledButton.icon(
         icon: const Icon(Icons.stop_rounded),
-        label: Text('Stop'),
+        label: const Text('Stop'),
         onPressed:
             peripheral.isInitialized && _isRoundActive ? _stopRound : null,
+      );
+
+  Widget _buildPreviewButton() => FilledButton.icon(
+        icon: const Icon(Icons.preview_rounded),
+        label: const Text('Preview'),
+        onPressed: peripheral.isInitialized &&
+                peripheral.isFeatureSupported(Features.getState) &&
+                !_isRoundActive
+            ? _showPreview
+            : null,
       );
 
   Widget _buildControlButtons() => SizedBox(
@@ -247,9 +246,11 @@ class RoundScreenState extends State<RoundScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: _buildNewRoundButton()),
+            Expanded(child: _buildStartButton()),
             const SizedBox(width: 12),
-            Expanded(child: _buildStopRoundButton()),
+            Expanded(child: _buildStopButton()),
+            const SizedBox(width: 12),
+            Expanded(child: _buildPreviewButton()),
           ],
         ),
       );

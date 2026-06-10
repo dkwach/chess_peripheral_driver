@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -16,35 +17,47 @@ class UnknownPiece {
   final String symbol;
 }
 
-class PeripheralPreviewFen {
-  const PeripheralPreviewFen({
+class PeripheralPreviewState {
+  const PeripheralPreviewState({
     required this.fen,
     required this.unknownPieces,
+    required this.canStartRound,
   });
 
-  final String fen;
+  const PeripheralPreviewState.empty()
+      : fen = null,
+        unknownPieces = const [],
+        canStartRound = false;
+
+  final String? fen;
   final List<UnknownPiece> unknownPieces;
+  final bool canStartRound;
 }
 
-PeripheralPreviewFen createPeripheralPreviewFen(String fen) {
+bool _isPeripheralPreviewFenGettable(String? fen) {
+  return fen != null && !fen.contains(RegExp(r'[?Uu]'));
+}
+
+PeripheralPreviewState createPeripheralPreviewState(String fen) {
   final tokens = fen.trim().split(RegExp(r'\s+'));
   final boardFen = tokens.isEmpty ? '8/8/8/8/8/8/8/8' : tokens.first;
   final result = _readPreviewBoardFen(boardFen);
   final completedTokens = [
-    result.fen,
+    result.fen ?? '8/8/8/8/8/8/8/8',
     tokens.length > 1 ? tokens[1] : 'w',
     tokens.length > 2 ? tokens[2] : '-',
     tokens.length > 3 ? tokens[3] : '-',
     tokens.length > 4 ? tokens[4] : '0',
     tokens.length > 5 ? tokens[5] : '1',
   ];
-  return PeripheralPreviewFen(
+  return PeripheralPreviewState(
     fen: completedTokens.join(' '),
     unknownPieces: result.unknownPieces,
+    canStartRound: _isPeripheralPreviewFenGettable(fen),
   );
 }
 
-PeripheralPreviewFen _readPreviewBoardFen(String boardFen) {
+PeripheralPreviewState _readPreviewBoardFen(String boardFen) {
   final rows = boardFen.split('/');
   final normalizedRows = <String>[];
   final unknownPieces = <UnknownPiece>[];
@@ -91,16 +104,17 @@ PeripheralPreviewFen _readPreviewBoardFen(String boardFen) {
     normalizedRows.add(buffer.toString());
   }
 
-  return PeripheralPreviewFen(
+  return PeripheralPreviewState(
     fen: normalizedRows.join('/'),
     unknownPieces: unknownPieces,
+    canStartRound: false,
   );
 }
 
 class PeripheralPreviewChessBoard extends StatelessWidget {
   const PeripheralPreviewChessBoard({
     required this.controller,
-    required this.unknownPieces,
+    required this.previewState,
     required this.boardColor,
     required this.boardOrientation,
     this.onMove,
@@ -108,7 +122,7 @@ class PeripheralPreviewChessBoard extends StatelessWidget {
   });
 
   final ChessBoardController controller;
-  final List<UnknownPiece> unknownPieces;
+  final PeripheralPreviewState previewState;
   final BoardColor boardColor;
   final PlayerColor boardOrientation;
   final VoidCallback? onMove;
@@ -132,7 +146,7 @@ class PeripheralPreviewChessBoard extends StatelessWidget {
               IgnorePointer(
                 child: Stack(
                   children: [
-                    for (final piece in unknownPieces)
+                    for (final piece in previewState.unknownPieces)
                       _UnknownPieceMarker(
                         piece: piece,
                         boardSize: boardSize,
@@ -145,6 +159,101 @@ class PeripheralPreviewChessBoard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class PeripheralPreviewDialog extends StatefulWidget {
+  const PeripheralPreviewDialog({
+    required this.fen,
+    required this.roundUpdateStream,
+    required this.requestState,
+    required this.boardColor,
+    required this.boardOrientation,
+    super.key,
+  });
+
+  final String? Function() fen;
+  final Stream<dynamic> roundUpdateStream;
+  final Future<void> Function() requestState;
+  final BoardColor boardColor;
+  final PlayerColor boardOrientation;
+
+  @override
+  State<PeripheralPreviewDialog> createState() =>
+      _PeripheralPreviewDialogState();
+}
+
+class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
+  final ChessBoardController _controller = ChessBoardController();
+  PeripheralPreviewState _previewState = const PeripheralPreviewState.empty();
+  StreamSubscription? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyFen(widget.fen());
+    _subscription = widget.roundUpdateStream.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _applyFen(widget.fen());
+      });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.requestState();
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _applyFen(String? fen) {
+    if (fen == null) {
+      _previewState = const PeripheralPreviewState.empty();
+      return;
+    }
+
+    final previewState = createPeripheralPreviewState(fen);
+    if (previewState.fen != null && Chess().load(previewState.fen!)) {
+      _controller.loadFen(previewState.fen!);
+      _previewState = previewState;
+    } else {
+      _previewState = const PeripheralPreviewState.empty();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Preview'),
+      content: SizedBox.square(
+        dimension: 280,
+        child: _previewState.fen == null
+            ? const Center(child: CircularProgressIndicator())
+            : PeripheralPreviewChessBoard(
+                controller: _controller,
+                previewState: _previewState,
+                boardColor: widget.boardColor,
+                boardOrientation: widget.boardOrientation,
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: const Text('Start'),
+          onPressed: _previewState.canStartRound
+              ? () => Navigator.of(context).pop(_previewState.fen)
+              : null,
+        ),
+      ],
     );
   }
 }
