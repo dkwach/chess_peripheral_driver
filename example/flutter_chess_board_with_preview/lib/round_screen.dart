@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'peripheral_preview_chess_board.dart';
+import 'peripheral_preview_dialog.dart';
 
 class RoundScreen extends StatefulWidget {
   RoundScreen({
