@@ -1,0 +1,225 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:chessground/chessground.dart';
+import 'package:dartchess/dartchess.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/material.dart';
+
+import 'peripheral_fen.dart';
+
+class PeripheralPreviewState {
+  const PeripheralPreviewState({
+    required this.fen,
+    required this.annotations,
+    required this.canStartRound,
+  });
+
+  const PeripheralPreviewState.empty()
+      : fen = null,
+        annotations = const IMapConst({}),
+        canStartRound = false;
+
+  final String? fen;
+  final IMap<Square, Annotation> annotations;
+  final bool canStartRound;
+}
+
+PeripheralPreviewState createPeripheralPreviewState(String fen) {
+  final tokens = fen.trim().split(RegExp(r'\s+'));
+  final boardFen = tokens.isEmpty ? '8/8/8/8/8/8/8/8' : tokens.first;
+  final result = _createPreviewBoard(readPeripheralFen(boardFen));
+  final completedTokens = [
+    result.boardFen,
+    tokens.length > 1 ? tokens[1] : 'w',
+    tokens.length > 2 ? tokens[2] : '-',
+    tokens.length > 3 ? tokens[3] : '-',
+    tokens.length > 4 ? tokens[4] : '0',
+    tokens.length > 5 ? tokens[5] : '1',
+  ];
+  final completedFen = completedTokens.join(' ');
+
+  return PeripheralPreviewState(
+    fen: completedFen,
+    annotations: result.annotations,
+    canStartRound:
+        isPeripheralFenGettable(fen) && _isValidPositionFen(completedFen),
+  );
+}
+
+bool _isValidPositionFen(String fen) {
+  try {
+    Chess.fromSetup(Setup.parseFen(fen));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+_PreviewBoardFenResult _createPreviewBoard(PeripheralPieces peripheralPieces) {
+  final Pieces pieces = {};
+  IMap<Square, Annotation> annotations = IMap();
+
+  for (final entry in peripheralPieces.entries) {
+    final square = entry.key;
+    final peripheralPiece = entry.value;
+    final role = peripheralPiece.role;
+    final color = peripheralPiece.color;
+
+    if (role != null && color != null) {
+      pieces[square] = Piece(
+        role: role,
+        color: color,
+        promoted: peripheralPiece.promoted,
+      );
+    } else {
+      annotations = annotations.add(
+        square,
+        Annotation(
+          symbol: _unknownPieceSymbol(peripheralPiece),
+          color: _unknownPieceMarkerColor(peripheralPiece),
+        ),
+      );
+    }
+  }
+
+  return _PreviewBoardFenResult(
+    boardFen: writeFen(pieces),
+    annotations: annotations,
+  );
+}
+
+class PeripheralPreviewChessBoard extends StatelessWidget {
+  const PeripheralPreviewChessBoard({
+    required this.previewState,
+    required this.orientation,
+    super.key,
+  });
+
+  final PeripheralPreviewState previewState;
+  final Side orientation;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boardSize = min(constraints.maxWidth, constraints.maxHeight);
+        return Chessboard.fixed(
+          size: boardSize,
+          orientation: orientation,
+          fen: previewState.fen!,
+          annotations: previewState.annotations,
+        );
+      },
+    );
+  }
+}
+
+class PeripheralPreviewDialog extends StatefulWidget {
+  const PeripheralPreviewDialog({
+    required this.fen,
+    required this.roundUpdateStream,
+    required this.requestState,
+    required this.orientation,
+    super.key,
+  });
+
+  final String? Function() fen;
+  final Stream<dynamic> roundUpdateStream;
+  final Future<void> Function() requestState;
+  final Side orientation;
+
+  @override
+  State<PeripheralPreviewDialog> createState() =>
+      _PeripheralPreviewDialogState();
+}
+
+class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
+  PeripheralPreviewState _previewState = const PeripheralPreviewState.empty();
+  StreamSubscription? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyFen(widget.fen());
+    _subscription = widget.roundUpdateStream.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _applyFen(widget.fen());
+      });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.requestState();
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _applyFen(String? fen) {
+    if (fen == null) {
+      _previewState = const PeripheralPreviewState.empty();
+      return;
+    }
+
+    _previewState = createPeripheralPreviewState(fen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Preview'),
+      content: SizedBox.square(
+        dimension: 280,
+        child: _previewState.fen == null
+            ? const Center(child: CircularProgressIndicator())
+            : PeripheralPreviewChessBoard(
+                previewState: _previewState,
+                orientation: widget.orientation,
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: const Text('Start'),
+          onPressed: _previewState.canStartRound
+              ? () => Navigator.of(context).pop(_previewState.fen)
+              : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _PreviewBoardFenResult {
+  const _PreviewBoardFenResult({
+    required this.boardFen,
+    required this.annotations,
+  });
+
+  final String boardFen;
+  final IMap<Square, Annotation> annotations;
+}
+
+String _unknownPieceSymbol(PeripheralPiece piece) {
+  return switch (piece.color) {
+    Side.white => 'W?',
+    Side.black => 'B?',
+    null => '?',
+  };
+}
+
+Color _unknownPieceMarkerColor(PeripheralPiece piece) {
+  return switch (piece.color) {
+    Side.white => const Color(0xFF607D8B),
+    Side.black => const Color(0xFF242424),
+    null => const Color(0xFF5E6675),
+  };
+}
