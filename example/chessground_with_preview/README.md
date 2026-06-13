@@ -49,8 +49,8 @@ To implement preview, follow these steps:
 
 1. Include `Features.getState` in the peripheral feature list.
 2. Check whether the connected peripheral supports it with `peripheral.isFeatureSupported(Features.getState)`.
-3. When preview is needed(round should be not active), call `peripheral.handleGetState()` to request the current e-board state.
-4. Subscribe to `peripheral.roundUpdateStream` while preview is open. In this example, `RoundScreen` reads `peripheral.round.fen` after each update and forwards only FEN values to `PeripheralPreviewDialog` as a `Stream<String>`.
+3. When preview is needed(round should be not active), open `PeripheralPreviewDialog` with the current `peripheral` and call `peripheral.handleGetState()` to request the current e-board state.
+4. Subscribe to `peripheral.roundUpdateStream` while preview is open. In this example, `PeripheralPreviewDialog` reads the latest preview position from `peripheral.round.fen` after each update.
 5. Render known pieces as a normal `chessground` position and render unknown pieces as board annotations.
 
 Remember that for e-boards with binary sensors, or e-boards that can only recognize colors, you can get a FEN like:

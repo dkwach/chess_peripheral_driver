@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:ble_chess_peripheral_driver/chess_peripheral_driver.dart';
 import 'package:chessground/chessground.dart';
 import 'package:dartchess/dartchess.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -106,12 +107,12 @@ class PeripheralPreviewChessBoard extends StatelessWidget {
 
 class PeripheralPreviewDialog extends StatefulWidget {
   const PeripheralPreviewDialog({
-    required this.fenStream,
+    required this.peripheral,
     required this.orientation,
     super.key,
   });
 
-  final Stream<String> fenStream;
+  final Peripheral peripheral;
   final Side orientation;
 
   @override
@@ -126,10 +127,11 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
   @override
   void initState() {
     super.initState();
-    _subscription = widget.fenStream.listen((fen) {
+    _applyFen(widget.peripheral.round.fen);
+    _subscription = widget.peripheral.roundUpdateStream.listen((_) {
       if (!mounted) return;
       setState(() {
-        _previewState = createPeripheralPreviewState(fen);
+        _applyFen(widget.peripheral.round.fen);
       });
     });
   }
@@ -138,6 +140,15 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
   void dispose() {
     _subscription?.cancel();
     super.dispose();
+  }
+
+  void _applyFen(String? fen) {
+    if (fen == null) {
+      _previewState = const PeripheralPreviewState.empty();
+      return;
+    }
+
+    _previewState = createPeripheralPreviewState(fen);
   }
 
   @override

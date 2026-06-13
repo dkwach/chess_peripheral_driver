@@ -69,36 +69,17 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _showPreview() async {
-    final fenController = StreamController<String>();
-    StreamSubscription? roundUpdateSubscription;
+    await peripheral.handleGetState();
+    final fen = await showDialog<String>(
+      context: context,
+      builder: (context) => PeripheralPreviewDialog(
+        peripheral: peripheral,
+        orientation: orientation,
+      ),
+    );
 
-    void emitFen() {
-      final fen = peripheral.round.fen;
-      if (fen != null && !fenController.isClosed) {
-        fenController.add(fen);
-      }
-    }
-
-    try {
-      roundUpdateSubscription = peripheral.roundUpdateStream.listen((_) {
-        emitFen();
-      });
-      final previewFuture = showDialog<String>(
-        context: context,
-        builder: (context) => PeripheralPreviewDialog(
-          fenStream: fenController.stream,
-          orientation: orientation,
-        ),
-      );
-      emitFen();
-      await peripheral.handleGetState();
-      final fen = await previewFuture;
-      if (fen != null) {
-        await _beginRound(fen: fen);
-      }
-    } finally {
-      await roundUpdateSubscription?.cancel();
-      await fenController.close();
+    if (fen != null) {
+      await _beginRound(fen: fen);
     }
   }
 
@@ -298,16 +279,13 @@ class RoundScreenState extends State<RoundScreen> {
   Widget _buildBeginButton() => FilledButton.icon(
         icon: const Icon(Icons.play_arrow_rounded),
         label: const Text('New default round'),
-        onPressed:
-            peripheral.isInitialized ? _beginRound : null,
+        onPressed: peripheral.isInitialized ? _beginRound : null,
       );
-
 
   Widget _buildPreviewButton() => FilledButton.icon(
         icon: const Icon(Icons.preview_rounded),
         label: const Text('Begin from peripheral'),
-        onPressed:
-            peripheral.isInitialized ? _showPreview : null,
+        onPressed: peripheral.isInitialized ? _showPreview : null,
       );
 
   Widget _buildControlButtons() => Column(
