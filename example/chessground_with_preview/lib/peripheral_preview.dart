@@ -26,24 +26,13 @@ class PeripheralPreviewState {
 }
 
 PeripheralPreviewState createPeripheralPreviewState(String fen) {
-  final tokens = fen.trim().split(RegExp(r'\s+'));
-  final boardFen = tokens.isEmpty ? '8/8/8/8/8/8/8/8' : tokens.first;
-  final result = _createPreviewBoard(readPeripheralFen(boardFen));
-  final completedTokens = [
-    result.boardFen,
-    tokens.length > 1 ? tokens[1] : 'w',
-    tokens.length > 2 ? tokens[2] : '-',
-    tokens.length > 3 ? tokens[3] : '-',
-    tokens.length > 4 ? tokens[4] : '0',
-    tokens.length > 5 ? tokens[5] : '1',
-  ];
-  final completedFen = completedTokens.join(' ');
+  final result = _createPreviewBoard(readPeripheralFen(fen));
 
   return PeripheralPreviewState(
-    fen: completedFen,
+    fen: result.boardFen,
     annotations: result.annotations,
     canBeginRound:
-        isPeripheralFenGettable(fen) && _isValidPositionFen(completedFen),
+        isPeripheralFenGettable(fen) && _isValidPositionFen(result.boardFen),
   );
 }
 
