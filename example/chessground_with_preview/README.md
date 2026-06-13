@@ -15,9 +15,7 @@ Future<void> _initPeripheral() async {
   ...
 
   final features = [
-    Features.msg,
-    Features.getState, // basic game, message exchange, e-board options, and `getState` for preview.
-    Features.option,
+    Features.getState,
   ];
   final variants = [Variants.standard];
   peripheral = CppPeripheral(
@@ -30,13 +28,12 @@ Future<void> _initPeripheral() async {
   peripheral.stateSynchronizeStream.listen(_handlePeripheralStateSynchronize);
   peripheral.moveStream.listen(_handlePeripheralMove);
   peripheral.errStream.listen(_showError);
-  peripheral.msgStream.listen(_showMessage);
 }
 ```
 * handle initializedStream/roundInitializedStream/ for initialization
 * handle stateSynchronizeStream to monitor  central/peripheral synchronization
 * handle moveStream to get moves from peripheral
-* handle errStream/msgStream for free messages and potential errors
+* handle errStream for potential errors
 
 From central we need
 * initialize game: `peripheral.handleBegin()`

@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:ble_backend/ble_connector.dart';
 import 'package:ble_backend/ble_peripheral.dart';
 import 'package:ble_backend_screens/ui/ui_consts.dart';
-import 'package:ble_chess_example/options_screen.dart';
 import 'package:ble_chess_peripheral_driver/ble_chess_peripheral_driver.dart';
 import 'package:ble_chess_peripheral_driver/chess_peripheral_driver.dart';
 import 'package:chessground/chessground.dart';
@@ -32,7 +31,6 @@ class RoundScreen extends StatefulWidget {
 class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   Peripheral peripheral = DummyPeripheral();
-  bool _isRoundActive = false;
   Position position = Chess.initial;
   Side orientation = Side.white;
   String fen = Chess.initial.fen;
@@ -54,7 +52,6 @@ class RoundScreenState extends State<RoundScreen> {
     }
 
     setState(() {
-      _isRoundActive = true;
       position = nextPosition;
       this.fen = position.fen;
       validMoves = makeLegalMoves(position);
@@ -69,14 +66,6 @@ class RoundScreenState extends State<RoundScreen> {
       lastMove: lastMove?.uci,
       check: _getCheck(),
     );
-  }
-
-  Future<void> _endRound() async {
-    setState(() {
-      _isRoundActive = false;
-      promotionMove = null;
-    });
-    await peripheral.handleEnd(reason: EndReasons.abort);
   }
 
   Future<void> _showPreview() async {
@@ -134,7 +123,6 @@ class RoundScreenState extends State<RoundScreen> {
 
   void _handlePeripheralInitialized(_) {
     setState(() {
-      _isRoundActive = false;
       promotionMove = null;
     });
   }
@@ -142,7 +130,6 @@ class RoundScreenState extends State<RoundScreen> {
   void _handlePeripheralRoundInitialized(_) {
     setState(() {
       if (!peripheral.round.isVariantSupported) {
-        _isRoundActive = false;
         _showMessage('Unsupported variant');
       }
     });
@@ -164,33 +151,18 @@ class RoundScreenState extends State<RoundScreen> {
     if (position.isCheckmate) {
       _showMessage('Checkmate');
       peripheral.handleEnd(reason: EndReasons.checkmate);
-      setState(() {
-        _isRoundActive = false;
-      });
     } else if (position.isStalemate || position.isInsufficientMaterial) {
       _showMessage('Draw');
       peripheral.handleEnd(
         reason: EndReasons.draw,
       );
-      setState(() {
-        _isRoundActive = false;
-      });
     } else if (position.isVariantEnd) {
       _showMessage('Variant end');
       peripheral.handleEnd(reason: EndReasons.undefined);
-      setState(() {
-        _isRoundActive = false;
-      });
     }
   }
 
   void _handlePeripheralMove(String uci) {
-    if (!_isRoundActive) {
-      peripheral.handleReject();
-      _showMessage('Rejected');
-      return;
-    }
-
     final move = NormalMove.fromUci(uci);
     if (position.isLegal(move)) {
       _playMove(move);
@@ -219,9 +191,7 @@ class RoundScreenState extends State<RoundScreen> {
       ),
     );
     final features = [
-      Features.msg,
       Features.getState,
-      Features.option,
     ];
     final variants = [Variants.standard];
     peripheral = CppPeripheral(
@@ -234,14 +204,12 @@ class RoundScreenState extends State<RoundScreen> {
     peripheral.stateSynchronizeStream.listen(_handlePeripheralStateSynchronize);
     peripheral.moveStream.listen(_handlePeripheralMove);
     peripheral.errStream.listen(_showError);
-    peripheral.msgStream.listen(_showMessage);
   }
 
   void _onConnectionStateChanged(BleConnectorStatus state) {
     setState(() {
       if (state == BleConnectorStatus.disconnected) {
         peripheral = DummyPeripheral();
-        _isRoundActive = false;
       } else if (state == BleConnectorStatus.connected) {
         _initPeripheral();
       }
@@ -259,8 +227,6 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   void _playMove(NormalMove move, {bool? isDrop}) {
-    if (!_isRoundActive) return;
-
     if (_isPromotionPawnMove(move)) {
       setState(() {
         promotionMove = move;
@@ -314,7 +280,7 @@ class RoundScreenState extends State<RoundScreen> {
               fen: fen,
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
               game: GameData(
-                playerSide: _isRoundActive ? PlayerSide.both : PlayerSide.none,
+                playerSide: PlayerSide.both,
                 validMoves: validMoves,
                 sideToMove: position.turn,
                 isCheck: peripheral.round.isStateSynchronized
@@ -331,23 +297,17 @@ class RoundScreenState extends State<RoundScreen> {
 
   Widget _buildBeginButton() => FilledButton.icon(
         icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('New Round'),
+        label: const Text('New default round'),
         onPressed:
-            peripheral.isInitialized && !_isRoundActive ? _beginRound : null,
+            peripheral.isInitialized ? _beginRound : null,
       );
 
-  Widget _buildEndButton() => FilledButton.icon(
-        icon: const Icon(Icons.stop_rounded),
-        label: const Text('End Round'),
-        onPressed:
-            peripheral.isInitialized && _isRoundActive ? _endRound : null,
-      );
 
   Widget _buildPreviewButton() => FilledButton.icon(
         icon: const Icon(Icons.preview_rounded),
-        label: const Text('Preview'),
+        label: const Text('Begin from peripheral'),
         onPressed:
-            peripheral.isInitialized && !_isRoundActive ? _showPreview : null,
+            peripheral.isInitialized ? _showPreview : null,
       );
 
   Widget _buildControlButtons() => Column(
@@ -370,8 +330,6 @@ class RoundScreenState extends State<RoundScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: _buildBeginButton()),
-                const SizedBox(width: buttonsSplitter),
-                Expanded(child: _buildEndButton()),
               ],
             ),
           ),
@@ -415,23 +373,6 @@ class RoundScreenState extends State<RoundScreen> {
         appBar: AppBar(
           title: Text(blePeripheral.name ?? ''),
           centerTitle: true,
-          actions: [
-            if (peripheral.isFeatureSupported(Features.option))
-              IconButton(
-                icon: const Icon(Icons.settings_rounded),
-                onPressed: peripheral.isInitialized
-                    ? () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                OptionsScreen(peripheral: peripheral),
-                          ),
-                        );
-                      }
-                    : null,
-              ),
-          ],
         ),
         body: SafeArea(
           child: OrientationBuilder(
