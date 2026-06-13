@@ -12,17 +12,17 @@ class PeripheralPreviewState {
   const PeripheralPreviewState({
     required this.fen,
     required this.annotations,
-    required this.canStartRound,
+    required this.canBeginRound,
   });
 
   const PeripheralPreviewState.empty()
       : fen = null,
         annotations = const IMapConst({}),
-        canStartRound = false;
+        canBeginRound = false;
 
   final String? fen;
   final IMap<Square, Annotation> annotations;
-  final bool canStartRound;
+  final bool canBeginRound;
 }
 
 PeripheralPreviewState createPeripheralPreviewState(String fen) {
@@ -42,7 +42,7 @@ PeripheralPreviewState createPeripheralPreviewState(String fen) {
   return PeripheralPreviewState(
     fen: completedFen,
     annotations: result.annotations,
-    canStartRound:
+    canBeginRound:
         isPeripheralFenGettable(fen) && _isValidPositionFen(completedFen),
   );
 }
@@ -119,14 +119,12 @@ class PeripheralPreviewDialog extends StatefulWidget {
   const PeripheralPreviewDialog({
     required this.fen,
     required this.roundUpdateStream,
-    required this.requestState,
     required this.orientation,
     super.key,
   });
 
   final String? Function() fen;
   final Stream<dynamic> roundUpdateStream;
-  final Future<void> Function() requestState;
   final Side orientation;
 
   @override
@@ -147,9 +145,6 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
       setState(() {
         _applyFen(widget.fen());
       });
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.requestState();
     });
   }
 
@@ -188,8 +183,8 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
         ),
         FilledButton.icon(
           icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('Start'),
-          onPressed: _previewState.canStartRound
+          label: const Text('Begin Round'),
+          onPressed: _previewState.canBeginRound
               ? () => Navigator.of(context).pop(_previewState.fen)
               : null,
         ),

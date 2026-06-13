@@ -13,7 +13,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'peripheral_preview_chess_board.dart';
+import 'peripheral_preview.dart';
 
 class RoundScreen extends StatefulWidget {
   RoundScreen({
@@ -71,7 +71,7 @@ class RoundScreenState extends State<RoundScreen> {
     );
   }
 
-  Future<void> _stopRound() async {
+  Future<void> _endRound() async {
     setState(() {
       _isRoundActive = false;
       promotionMove = null;
@@ -80,12 +80,12 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _showPreview() async {
+    await peripheral.handleGetState();
     final fen = await showDialog<String>(
       context: context,
       builder: (context) => PeripheralPreviewDialog(
         fen: () => peripheral.round.fen,
         roundUpdateStream: peripheral.roundUpdateStream,
-        requestState: peripheral.handleGetState,
         orientation: orientation,
       ),
     );
@@ -328,42 +328,53 @@ class RoundScreenState extends State<RoundScreen> {
         ),
       );
 
-  Widget _buildStartButton() => FilledButton.icon(
+  Widget _buildBeginButton() => FilledButton.icon(
         icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('Start'),
+        label: const Text('New Round'),
         onPressed:
             peripheral.isInitialized && !_isRoundActive ? _beginRound : null,
       );
 
-  Widget _buildStopButton() => FilledButton.icon(
+  Widget _buildEndButton() => FilledButton.icon(
         icon: const Icon(Icons.stop_rounded),
-        label: const Text('Stop'),
+        label: const Text('End Round'),
         onPressed:
-            peripheral.isInitialized && _isRoundActive ? _stopRound : null,
+            peripheral.isInitialized && _isRoundActive ? _endRound : null,
       );
 
   Widget _buildPreviewButton() => FilledButton.icon(
         icon: const Icon(Icons.preview_rounded),
         label: const Text('Preview'),
-        onPressed: peripheral.isInitialized &&
-                peripheral.isFeatureSupported(Features.getState) &&
-                !_isRoundActive
-            ? _showPreview
-            : null,
+        onPressed:
+            peripheral.isInitialized && !_isRoundActive ? _showPreview : null,
       );
 
-  Widget _buildControlButtons() => SizedBox(
-        height: buttonHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _buildStartButton()),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStopButton()),
-            const SizedBox(width: 12),
-            Expanded(child: _buildPreviewButton()),
-          ],
-        ),
+  Widget _buildControlButtons() => Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (peripheral.isFeatureSupported(Features.getState))
+            SizedBox(
+              height: buttonHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _buildPreviewButton()),
+                ],
+              ),
+            ),
+          const SizedBox(height: buttonsSplitter),
+          SizedBox(
+            height: buttonHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _buildBeginButton()),
+                const SizedBox(width: buttonsSplitter),
+                Expanded(child: _buildEndButton()),
+              ],
+            ),
+          ),
+        ],
       );
 
   Widget _buildPortrait() => Padding(
