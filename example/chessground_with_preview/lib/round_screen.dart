@@ -305,23 +305,6 @@ class RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
-  IMap<Square, SquareHighlight> _createSquareHighlights() {
-    const rejectedMoveColor = Color.fromRGBO(199, 0, 109, 0.41);
-    IMap<Square, SquareHighlight> highlights = IMap();
-
-    if (peripheral.round.rejectedMove != null) {
-      final rejectedMove = NormalMove.fromUci(peripheral.round.rejectedMove!);
-      final highlight = SquareHighlight(
-        details: HighlightDetails(
-          solidColor: rejectedMoveColor,
-        ),
-      );
-      highlights = highlights.add(rejectedMove.from, highlight);
-      highlights = highlights.add(rejectedMove.to, highlight);
-    }
-    return highlights;
-  }
-
   Widget _buildChessBoardWidget() => Center(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -330,7 +313,6 @@ class RoundScreenState extends State<RoundScreen> {
               orientation: orientation,
               fen: fen,
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
-              squareHighlights: _createSquareHighlights(),
               game: GameData(
                 playerSide: _isRoundActive ? PlayerSide.both : PlayerSide.none,
                 validMoves: validMoves,
