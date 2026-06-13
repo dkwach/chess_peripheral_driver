@@ -106,14 +106,12 @@ class PeripheralPreviewChessBoard extends StatelessWidget {
 
 class PeripheralPreviewDialog extends StatefulWidget {
   const PeripheralPreviewDialog({
-    required this.fen,
-    required this.roundUpdateStream,
+    required this.fenStream,
     required this.orientation,
     super.key,
   });
 
-  final String? Function() fen;
-  final Stream<dynamic> roundUpdateStream;
+  final Stream<String> fenStream;
   final Side orientation;
 
   @override
@@ -128,11 +126,10 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
   @override
   void initState() {
     super.initState();
-    _applyFen(widget.fen());
-    _subscription = widget.roundUpdateStream.listen((_) {
+    _subscription = widget.fenStream.listen((fen) {
       if (!mounted) return;
       setState(() {
-        _applyFen(widget.fen());
+        _previewState = createPeripheralPreviewState(fen);
       });
     });
   }
@@ -141,15 +138,6 @@ class _PeripheralPreviewDialogState extends State<PeripheralPreviewDialog> {
   void dispose() {
     _subscription?.cancel();
     super.dispose();
-  }
-
-  void _applyFen(String? fen) {
-    if (fen == null) {
-      _previewState = const PeripheralPreviewState.empty();
-      return;
-    }
-
-    _previewState = createPeripheralPreviewState(fen);
   }
 
   @override

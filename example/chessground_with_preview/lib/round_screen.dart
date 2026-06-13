@@ -80,17 +80,36 @@ class RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _showPreview() async {
-    await peripheral.handleGetState();
-    final fen = await showDialog<String>(
-      context: context,
-      builder: (context) => PeripheralPreviewDialog(
-        fen: () => peripheral.round.fen,
-        roundUpdateStream: peripheral.roundUpdateStream,
-        orientation: orientation,
-      ),
-    );
-    if (fen != null) {
-      await _beginRound(fen: fen);
+    final fenController = StreamController<String>();
+    StreamSubscription? roundUpdateSubscription;
+
+    void emitFen() {
+      final fen = peripheral.round.fen;
+      if (fen != null && !fenController.isClosed) {
+        fenController.add(fen);
+      }
+    }
+
+    try {
+      roundUpdateSubscription = peripheral.roundUpdateStream.listen((_) {
+        emitFen();
+      });
+      final previewFuture = showDialog<String>(
+        context: context,
+        builder: (context) => PeripheralPreviewDialog(
+          fenStream: fenController.stream,
+          orientation: orientation,
+        ),
+      );
+      emitFen();
+      await peripheral.handleGetState();
+      final fen = await previewFuture;
+      if (fen != null) {
+        await _beginRound(fen: fen);
+      }
+    } finally {
+      await roundUpdateSubscription?.cancel();
+      await fenController.close();
     }
   }
 
