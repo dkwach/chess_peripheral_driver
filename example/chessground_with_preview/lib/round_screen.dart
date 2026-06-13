@@ -13,7 +13,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'peripheral_preview.dart';
+import 'peripheral_preview_dialog.dart';
 
 class RoundScreen extends StatefulWidget {
   RoundScreen({
