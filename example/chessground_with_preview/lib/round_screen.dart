@@ -11,7 +11,6 @@ import 'package:dartchess/dartchess.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
 import 'peripheral_preview_dialog.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -32,7 +31,6 @@ class RoundScreenState extends State<RoundScreen> {
   StreamSubscription? _subscription;
   Peripheral peripheral = DummyPeripheral();
   Position position = Chess.initial;
-  Side orientation = Side.white;
   String fen = Chess.initial.fen;
   NormalMove? lastMove;
   NormalMove? promotionMove;
@@ -74,7 +72,6 @@ class RoundScreenState extends State<RoundScreen> {
       context: context,
       builder: (context) => PeripheralPreviewDialog(
         peripheral: peripheral,
-        orientation: orientation,
       ),
     );
 
@@ -171,9 +168,7 @@ class RoundScreenState extends State<RoundScreen> {
         txCharacteristicId: characteristicUuidTx,
       ),
     );
-    final features = [
-      Features.getState,
-    ];
+    final features = [Features.getState];
     final variants = [Variants.standard];
     peripheral = CppPeripheral(
       stringSerial: serial,
@@ -257,7 +252,7 @@ class RoundScreenState extends State<RoundScreen> {
           builder: (context, constraints) {
             return Chessboard(
               size: min(constraints.maxWidth, constraints.maxHeight),
-              orientation: orientation,
+              orientation: Side.white,
               fen: fen,
               lastMove: peripheral.round.isStateSynchronized ? lastMove : null,
               game: GameData(
@@ -278,13 +273,13 @@ class RoundScreenState extends State<RoundScreen> {
 
   Widget _buildBeginButton() => FilledButton.icon(
         icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('New default round'),
+        label: const Text('New Round'),
         onPressed: peripheral.isInitialized ? _beginRound : null,
       );
 
   Widget _buildPreviewButton() => FilledButton.icon(
         icon: const Icon(Icons.preview_rounded),
-        label: const Text('Begin from peripheral'),
+        label: const Text('From Peripheral'),
         onPressed: peripheral.isInitialized ? _showPreview : null,
       );
 
